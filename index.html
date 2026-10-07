@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Demark razvoz</title>
+<meta name="app-version" content="1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: black header with location (BG/NS), date and role; dispatcher board of driver columns, driver stop list, manager summary.
+   Palette deliberately limited to white, black, grays + green (normal / delivered) and red (urgent / problem). Single light look. */
+:root{
+  --bg:#F3F3F3; --surface:#FFFFFF; --surface-2:#E9E9E9; --line:#D6D6D6;
+  --fg:#111111; --muted:#6A6A6A; --black:#111111; --white:#FFFFFF;
+  --green:#1B7F3B; --red:#C62828; --blue:#0072CE; --deliv:#1157CC; --pick:#E77024;
+  --f:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+select:disabled{opacity:.5;cursor:not-allowed}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-weight:700;letter-spacing:-.015em;margin:0;text-wrap:balance}
+:focus-visible{outline:2px solid var(--black);outline-offset:2px}
+
+/* Header: black brand bar, dark nav bar, thin blue rules (per client mockup) */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;color:var(--white)}
+.bar1{background:#111111}
+.bar2{background:#2B2B2B;position:relative}
+.in{max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.bar2 .in{padding:14px 16px}
+.brand{margin-right:auto;min-width:0}
+.brand h1{font-size:19px;line-height:1.15;font-weight:800}
+.brand small{display:block;font-size:11.5px;color:#A8A8A8;font-weight:500}
+.userbox{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;color:var(--white)}
+.hbtn{background:transparent;border:1px solid #5A5A5A;color:var(--white);border-radius:8px;height:34px;min-width:34px;display:inline-grid;place-items:center;cursor:pointer;padding:0 8px}
+.hbtn:hover{border-color:#9A9A9A}
+.hbtn svg{width:18px;height:18px}
+.mainnav{display:flex;gap:2px;align-items:center;min-width:0}
+.mainnav button{background:none;border:0;color:#CFCFCF;font-weight:500;font-size:15px;padding:6px 8px;cursor:pointer;white-space:nowrap;border-radius:6px}
+.mainnav button:hover{color:var(--white)}
+.mainnav button[aria-current="page"]{color:var(--white);font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.menubtn{display:none}
+.datebar{display:flex;align-items:center;gap:6px;margin-left:auto}
+.datebar button,.datebar input{background:transparent;border:1px solid #5A5A5A;color:var(--white);border-radius:8px;height:34px}
+.datebar button{min-width:34px;cursor:pointer;display:grid;place-items:center}
+.datebar button svg{width:16px;height:16px}
+.datebar input{padding:0 10px;color-scheme:dark;font-variant-numeric:tabular-nums}
+@media (max-width:760px){
+  .menubtn{display:inline-grid}
+  .mainnav{display:none;position:absolute;left:0;right:0;top:100%;background:#2B2B2B;flex-direction:column;align-items:stretch;padding:6px 10px 10px;gap:0}
+  .mainnav.open{display:flex}
+  .mainnav button{text-align:left;padding:11px 8px;font-size:16px}
+}
+
+main{max-width:1280px;margin:0 auto;padding:18px 16px 60px;display:grid;gap:18px}
+.banner{padding:10px 14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--black);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--fg);white-space:nowrap}
+.btn:hover{border-color:var(--black)}
+.btn.primary{background:var(--black);border-color:var(--black);color:var(--white)}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.btn.blue:hover{background:#005FAD;border-color:#005FAD}
+.btn.ok{background:var(--green);border-color:var(--green);color:var(--white)}
+.btn.bad{color:var(--red);border-color:var(--red)}
+.btn.badfill{background:var(--red);border-color:var(--red);color:var(--white)}
+.btn.sm{padding:4px 9px;font-size:13px;border-radius:7px}
+.btn.big{padding:12px 16px;font-size:15px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:7px;width:30px;height:30px;cursor:pointer;display:grid;place-items:center;color:var(--muted);flex:none}
+.iconbtn:hover{color:var(--fg);border-color:var(--black)}
+.iconbtn[disabled]{opacity:.35;cursor:not-allowed}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:0;background:none;padding:9px 12px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--black)}
+.chipbar{display:flex;align-items:center;gap:12px;min-width:0}
+.chipwrap{flex:1;min-width:0}
+.chips{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:2px 0}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;white-space:nowrap}
+.chips.fade-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 48px),transparent)}
+.chips.fade-l{-webkit-mask-image:linear-gradient(to right,transparent,#000 48px);mask-image:linear-gradient(to right,transparent,#000 48px)}
+.chips.fade-l.fade-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 48px,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(to right,transparent,#000 48px,#000 calc(100% - 48px),transparent)}
+@media (hover:hover) and (pointer:fine){.chips{cursor:grab}}
+.chips.dragging,.chips.dragging button{cursor:grabbing;user-select:none}
+.chips button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:6px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.chips button:hover{border-color:var(--black)}
+.chips button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.chips button span{font-weight:500;opacity:.7;margin-left:4px}
+.confirm{display:grid;gap:16px;text-align:center;padding:8px 0}
+.confirm h2{font-size:22px}
+.confirm .row{justify-content:center}
+.confirm .btn{min-width:140px}
+.ttl{display:flex;align-items:baseline;gap:12px;position:relative;min-width:0}
+.ttl h2{font-size:26px;line-height:1.15}
+.ttl-sub{font-size:16px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.locbtn{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:2px 4px 2px 0;cursor:pointer;color:var(--fg)}
+.locbtn svg{width:18px;height:18px;flex:none;align-self:center}
+.locmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:15;background:var(--surface);border:1px solid var(--black);border-radius:10px;padding:4px;min-width:200px;box-shadow:0 10px 28px rgba(0,0,0,.16);display:grid}
+.locmenu button{background:none;border:0;text-align:left;padding:10px 12px;border-radius:7px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;gap:12px}
+.locmenu button:hover,.locmenu button[aria-checked="true"]{background:var(--surface-2)}
+.btn svg{width:18px;height:18px;flex:none}
+.btn.ibtn{padding:8px 14px}
+@media (max-width:760px){
+  .ttl-sub{display:none}
+  .btn.ibtn{width:42px;height:42px;padding:0}
+  .btn.ibtn .lbl{display:none}
+}
+.viewseg{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:2px;background:var(--surface)}
+.viewseg button{border:0;background:none;width:38px;height:32px;border-radius:99px;cursor:pointer;color:var(--muted);display:grid;place-items:center}
+.viewseg button svg{width:18px;height:18px}
+.rlab{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.rsel{font-size:13px;padding:4px 6px;border-radius:7px;border:1px solid var(--line);background:var(--surface);font-weight:600;color:var(--fg);min-width:58px}
+.rlab.big{font-size:15px;color:var(--fg)}
+.rlab.big .rsel{font-size:15px;padding:8px 10px;min-width:76px}
+.card-f select.sm{max-width:80px}
+.viewseg button[aria-pressed="true"]{background:var(--black);color:var(--white)}
+.card.simple{gap:6px;cursor:pointer;padding:9px 12px}
+.card.simple:hover{border-color:#9A9A9A}
+.card.simple .card-t b{font-size:15px}
+.card .collapse{justify-self:end}
+.assignee{font-size:13px;color:var(--muted)}
+.assignee b{color:var(--fg);font-weight:600}
+.loc-tag{display:inline-block;background:var(--black);color:var(--white);font-size:12px;font-weight:800;letter-spacing:.04em;border-radius:5px;padding:2px 7px;vertical-align:middle}
+
+.strip{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.strip div{background:var(--surface);padding:10px 14px;flex:1 0 140px}
+@media (hover:hover) and (pointer:fine){.strip{cursor:grab}}
+.strip.dragging{cursor:grabbing;user-select:none}
+.strip b{display:block;font-size:26px;line-height:1.15;font-weight:700;font-variant-numeric:tabular-nums}
+.strip span{font-size:12px;color:var(--muted);font-weight:500}
+
+.board{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding-bottom:10px;scrollbar-width:thin;scrollbar-color:#BDBDBD transparent}
+.board::-webkit-scrollbar{height:10px}
+.board::-webkit-scrollbar-thumb{background:#BDBDBD;border-radius:99px}
+.board::-webkit-scrollbar-track{background:transparent}
+.board > .col{flex:0 0 300px;scroll-snap-align:start}
+@media (hover:hover) and (pointer:fine){.board{cursor:grab}.board .card,.board select,.board button{cursor:auto}.board button,.board select{cursor:pointer}.board .card.simple{cursor:pointer}}
+.board.dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}.board.dragging *{cursor:grabbing!important}
+@media (max-width:760px){.board{margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px;scroll-snap-type:x mandatory}.board > .col{flex-basis:84%}}
+.col{background:var(--surface-2);border-radius:var(--r);padding:10px;display:grid;gap:8px;min-width:0}
+.col-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:2px 4px 6px}
+.col-h h3{font-size:17px}
+.meta{font-size:13px;color:var(--muted)}
+.empty{font-size:13.5px;color:var(--muted);padding:14px;text-align:center;border:1.5px dashed var(--line);border-radius:8px;background:var(--surface)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:9px;padding:10px 12px;display:grid;gap:7px;min-width:0}
+.card.urgent{border-left-color:var(--red)}
+.card.fin{opacity:.7}
+.card-h{display:flex;gap:8px;align-items:flex-start}
+.seq{flex:none;width:26px;height:26px;border-radius:50%;background:var(--black);color:var(--white);display:grid;place-items:center;font-weight:700;font-size:13px}
+.card-t{min-width:0;flex:1}
+.card-t b{display:block;font-weight:600;overflow-wrap:anywhere}
+.card-t .meta{overflow-wrap:anywhere}
+.card-f{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.card-f select{font-size:13px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--surface);max-width:150px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;border:1px solid transparent}
+.s-planned{color:var(--muted);border-color:var(--line)}
+.s-en_route{color:var(--white);background:var(--black)}
+.s-delivered{color:var(--green);border-color:var(--green)}
+.s-failed{color:var(--red);border-color:var(--red)}
+.u-urgent{background:var(--red);color:var(--white);font-weight:700;letter-spacing:.03em}
+.u-normal{background:var(--green);color:var(--white)}
+.t-type{gap:4px}
+.t-type.deliv{background:var(--deliv);border-color:var(--deliv);color:#FFFFFF}
+.t-type.pick{background:var(--pick);border-color:var(--pick);color:#FFFFFF}
+.arr{width:11px;height:11px;flex:none}
+.seg2 label .arr{width:14px;height:14px;margin-right:6px}
+.seg2 label.deliv:has(input:checked){background:var(--deliv);border-color:var(--deliv);color:#FFFFFF}
+.seg2 label.pick:has(input:checked){background:var(--pick);border-color:var(--pick);color:#FFFFFF}
+.rnd{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:6px 4px 0}
+.stops .rnd{font-size:12.5px;padding:8px 2px 0}
+.arrows{display:flex;gap:4px;margin-left:auto}
+.card-f select.sm{max-width:92px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg2 label{position:relative;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:9px;padding:11px;cursor:pointer;font-weight:700;font-size:14px}
+.seg2 input{position:absolute;opacity:0;pointer-events:none}
+.seg2 label:has(input:checked){border-color:var(--black);background:var(--black);color:var(--white)}
+.seg2 label:has(input:focus-visible){outline:2px solid var(--black);outline-offset:2px}
+.sheet.wide{max-width:1040px}
+.ptbl{border-collapse:collapse;width:100%;font-size:13px}
+.ptbl th{background:var(--black);color:var(--white);border:0;padding:7px 9px}
+.ptbl td{border:1px solid var(--line);padding:7px 9px;vertical-align:top}
+.ptbl td .a{color:var(--muted);font-size:12px}
+.ptbl .hot{color:var(--red);font-weight:700;font-size:11px;display:block}
+.nalog{font-size:12px;color:var(--fg);background:var(--surface-2);border-radius:5px;padding:2px 7px;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.drv-head{display:grid;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;max-width:760px}
+.prog{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:flex}
+.prog i{display:block;height:100%}
+.stops{display:grid;gap:12px;max-width:760px;width:100%}
+.stop{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--green);border-radius:12px;padding:14px;display:grid;gap:10px}
+.stop.urgent{border-left-color:var(--red)}
+.stop.fin{opacity:.72}
+.stop .seq{width:34px;height:34px;font-size:16px}
+.stop h3{font-size:20px;line-height:1.2}
+.stop-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi span{font-size:12.5px;color:var(--muted);font-weight:500}
+.kpi b{display:block;font-size:34px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.kpi small{color:var(--muted);font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:12px;min-width:0}
+.panel h2{font-size:18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px;align-items:start}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12px;color:var(--muted);text-align:left;font-weight:600;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--f);font-size:12px}
+
+.list{display:grid;gap:8px}
+.li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.li .grow{flex:1;min-width:180px}
+.selbar{display:flex;flex-wrap:nowrap;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--black);border-radius:9px;padding:8px 12px}
+@media (max-width:480px){.selbar .meta{display:none}}
+.ck{display:inline-flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
+.ck input,.ckbox{width:18px;height:18px;accent-color:var(--black);cursor:pointer;flex:none}
+.li.sel{border-color:var(--black);background:#FAFAFA}
+.search{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;width:100%;max-width:360px}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:grid;place-items:end center}
+@media (min-width:640px){.overlay{place-items:center;padding:24px}}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:14px}
+@media (min-width:640px){.sheet{border-radius:16px}}
+.sheet h2{font-size:21px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:grid;gap:5px;grid-column:span 2;min-width:0;align-content:start}
+.f.h{grid-column:span 1}
+@media (max-width:440px){.f.h{grid-column:span 2}}
+.f > label,.f .lbl{font-size:13px;font-weight:600}
+.f input,.f select,.f textarea{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 11px;width:100%;min-width:0}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--black);outline:none;box-shadow:0 0 0 1px var(--black)}
+.f .sub{margin-top:6px}
+.hint{font-size:13px;color:var(--muted)}
+.newtag{font-size:11px;font-weight:700;background:var(--black);color:var(--white);border-radius:4px;padding:1px 6px;margin-left:6px}
+
+.combo{position:relative}
+.combo-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;background:var(--surface);border:1px solid var(--black);border-radius:8px;max-height:260px;overflow:auto;margin:0;padding:4px;list-style:none;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.combo-list li{padding:9px 10px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.combo-list li small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.combo-list li.add{font-weight:700;border-bottom:1px solid var(--line);border-radius:6px 6px 0 0;margin-bottom:2px}
+.combo-list li[aria-selected="true"],.combo-list li:hover{background:var(--surface-2)}
+.combo-list li.none{color:var(--muted);cursor:default;background:none}
+
+.urg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.urg label{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--line);border-radius:9px;padding:11px;cursor:pointer;font-weight:700;font-size:14px}
+.urg input{position:absolute;opacity:0;pointer-events:none}
+.urg label.g:has(input:checked){border-color:var(--green);background:var(--green);color:var(--white)}
+.urg label.r:has(input:checked){border-color:var(--red);background:var(--red);color:var(--white)}
+.urg label:has(input:focus-visible){outline:2px solid var(--black);outline-offset:2px}
+
+
+.auth{max-width:400px;margin:40px auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;display:grid;gap:14px}
+.auth h2{font-size:22px}
+.auth .f{grid-column:auto}
+.auth .btn{width:100%;padding:11px}
+.linkbtn{background:none;border:0;color:var(--blue);font-weight:600;cursor:pointer;padding:0;font-size:14px}
+.err{color:var(--red);font-size:13.5px}
+#printArea{display:none}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff}
+  body > *:not(#printArea){display:none!important}
+  #printArea{display:block!important;font-family:var(--f);color:#111}
+  #printArea h1{font-size:16pt;margin:0}
+  #printArea .psub{font-size:10pt;color:#555;margin:2px 0 8px}
+  #printArea table{width:100%;border-collapse:collapse;font-size:10pt}
+  #printArea th{background:#111!important;color:#fff!important;text-align:left;padding:5px 7px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea td{border:1px solid #ccc;padding:5px 7px;vertical-align:top}
+  #printArea tr{break-inside:avoid}
+  #printArea td .a{color:#555;font-size:9pt}
+  #printArea .hot{color:#C62828;font-weight:700;font-size:8.5pt;display:block}
+  #printArea .pfoot{font-size:8pt;color:#777;margin-top:6px}
+}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--black);color:var(--white);padding:10px 16px;border-radius:9px;z-index:60;font-size:14px;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="bar1"><div class="in">
+    <div class="brand"><h1>Demark razvoz</h1><small>Transport robe kupcima</small></div>
+    <div class="userbox" id="userbox" hidden><span id="uname"></span>
+      <button class="hbtn" id="logout" aria-label="Odjava" title="Odjava"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></button>
+    </div>
+  </div></div>
+  <div class="bar2" id="bar2" hidden><div class="in">
+    <button class="hbtn menubtn" id="menuBtn" aria-label="Meni" aria-expanded="false" aria-controls="mainnav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav class="mainnav" id="mainnav" aria-label="Glavni meni">
+      <button data-role="plan">Plan razvoza</button>
+      <button data-role="drv">Moj raspored</button>
+      <button data-role="cust">Lista kupaca</button>
+      <button data-role="mgr">Analitika</button>
+      <button data-role="admin">Admin panel</button>
+    </nav>
+    <div class="datebar" id="datebar">
+      <button id="dPrev" aria-label="Prethodni dan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <input type="date" id="dPick" aria-label="Datum">
+      <button id="dNext" aria-label="Sledeći dan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </div></div>
+</header>
+<main id="main"><div class="empty">Učitavanje podataka…</div></main>
+<div id="modalRoot"></div>
+<div id="printArea"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>
+/* ===== PODEŠAVANJE: upišite podatke svog Supabase projekta (Project Settings → API) ===== */
+const SUPABASE_URL = "https://teamsfiamlktubniicah.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_xy58Orw99jfQzKAwd62XZQ_DrP9-CYF";
+/* ======================================================================================== */
+</script>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad2 = n => String(n).padStart(2,"0");
+const ymd = d => d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const today = () => ymd(new Date());
+const addDays = (s,n) => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d); x.setDate(x.getDate()+n); return ymd(x); };
+const DAYS = ["ned","pon","uto","sre","čet","pet","sub"];
+const fmtDate = s => { if(!s) return ""; const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d); return DAYS[x.getDay()]+" "+d+"."+m+"."; };
+const DAYS_FULL = ["Nedelja","Ponedeljak","Utorak","Sreda","Četvrtak","Petak","Subota"];
+const fmtLong = s => { const [y,m,d]=s.split("-").map(Number); return DAYS_FULL[new Date(y,m-1,d).getDay()]+" "+pad2(d)+"/"+pad2(m); };
+const fmtTime = iso => { if(!iso) return ""; const d=new Date(iso); return pad2(d.getHours())+":"+pad2(d.getMinutes()); };
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const norm = s => String(s||"").toLowerCase().replace(/đ/g,"dj").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
+const lsGet = k => { try { return localStorage.getItem("dt_"+k); } catch(e){ return null; } };
+const lsSet = (k,v) => { try { localStorage.setItem("dt_"+k, v); } catch(e){} };
+const STATUS = {planned:"Planirano", en_route:"U toku", delivered:"Isporučeno", failed:"Neisporučeno"};
+const isPick = o => o && o.type==="pickup";
+const TYPE = {delivery:"Isporuka robe", pickup:"Preuzimanje robe"};
+const ARROW_UP = `<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 L9 3 M4.2 3 H9 V7.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ARROW_DOWN = `<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M9 3 L3 9 M7.8 9 H3 V4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const typePill = o => `<span class="pill t-type ${isPick(o)?"pick":"deliv"}">${isPick(o)?ARROW_DOWN+"Preuzimanje":ARROW_UP+"Isporuka"}</span>`;
+const stLabel = (s,o) => s==="delivered" ? (isPick(o)?"Preuzeto":"Isporučeno") : s==="failed" ? (isPick(o)?"Nije preuzeto":"Neisporučeno") : (STATUS[s]||s);
+const statusPill = (s,o) => `<span class="pill s-${esc(s)}">${esc(stLabel(s,o))}</span>`;
+const ROUNDS = [0,1,2,3,4];
+const urgPill = u => u==="urgent" ? `<span class="pill u-urgent">HITNO</span>` : `<span class="pill u-normal">1–2 dana</span>`;
+const LOCS = {BG:"Beograd", NS:"Novi Sad"};
+const mapsTo = a => "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+encodeURIComponent(a);
+function routeLink(stops){
+  const s = stops.filter(o=>o.address); if(!s.length) return null;
+  const last = s[s.length-1], way = s.slice(0,-1).slice(0,9);
+  let u = mapsTo(last.address);
+  if(way.length) u += "&waypoints="+way.map(o=>encodeURIComponent(o.address)).join("%7C");
+  return u;
+}
+let toastT;
+function toast(msg){ let t=$("#toast"); if(!t){t=document.createElement("div");t.id="toast";t.className="toast";t.setAttribute("role","status");document.body.appendChild(t);} t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
+function armConfirm(btn, label){ if(btn.dataset.armed==="1") return true; btn.dataset.armed="1"; const old=btn.textContent; btn.textContent=label||"Potvrdi brisanje"; setTimeout(()=>{ if(btn.isConnected){ btn.dataset.armed=""; btn.textContent=old; } },3500); return false; }
+
+const S = {
+  orders:{}, drivers:{}, customers:{},
+  loaded:{orders:false,drivers:false,customers:false,users:false},
+  loc: lsGet("loc")==="NS" ? "NS" : "BG",
+  date: today(), view: lsGet("view")||"plan", cardView: lsGet("cardview")==="simple" ? "simple" : "detail", expanded:new Set(), colRound:{}, drvRound:lsGet("drvround")||"", locMenu:false, navOpen:false,
+  me: lsGet("me")||"", period: 7, mode:"loading", custQ:"", planFilter:"all", custEdit:false, custSel:new Set()
+};
+let sb = null, session = null;
+S.role = null; S.viewAs = ""; S.users = {}; S.userQ = ""; S.authMode = "login"; S.authMsg = "";
+const ROLES = {admin:"Administrator", dispecer:"Dispečer", komercijalista:"Komercijalista", vozac:"Vozač", magacioner:"Magacioner"};
+const NAV = {plan:"Plan razvoza", drv:"Moj raspored", cust:"Lista kupaca", mgr:"Analitika", admin:"Admin panel"};
+const VIEWS = {admin:["plan","drv","cust","mgr","admin"], dispecer:["plan","drv","cust","mgr"], komercijalista:["plan","cust"], vozac:["drv"], magacioner:["plan"]};
+const R = () => S.viewAs || S.role;
+const own = o => !!(o && o.createdBy && o.createdBy===S.myId);
+const P = {
+  views: () => VIEWS[R()] || [],
+  add: () => ["admin","komercijalista"].includes(R()),
+  assign: () => ["admin","dispecer"].includes(R()),
+  editOrder: o => R()==="admin" || (R()==="komercijalista" && own(o)),
+  delOrder: o => R()==="admin" || (R()==="komercijalista" && own(o)),
+  custAdd: () => ["admin","dispecer","komercijalista"].includes(R()),
+  custAdmin: () => ["admin","dispecer"].includes(R()),
+  drvAct: () => R()==="admin" || R()==="vozac",
+  admin: () => R()==="admin",
+  myDriver: () => R()==="vozac" ? (S.viewAs ? S.viewAsDriver : S.users[S.myId]?.driverId) || "" : null
+};
+const dis = ok => (ok && canWrite()) ? "" : "disabled";
+S.myId = null; S.names = {};
+const who = id => id ? (S.users[id]?.name || (id===S.myId ? "Vi" : "Nepoznat korisnik")) : "";
+
+/* --- mapping between app fields and database columns --- */
+const MAP = {
+  orders: {loc:"loc", date:"date", customerId:"customer_id", customer:"customer", address:"address", phone:"phone", orderNo:"order_no", note:"note",
+    urgency:"urgency", type:"type", driverId:"driver_id", round:"round", seq:"seq", status:"status", deliveredAt:"delivered_at", failedAt:"failed_at",
+    failReason:"fail_reason", failNote:"fail_note", createdAt:"created_at", createdBy:"created_by", updatedAt:"updated_at", updatedBy:"updated_by"},
+  customers: {name:"name", addresses:"addresses", phones:"phones", createdAt:"created_at", createdBy:"created_by"},
+  drivers: {name:"name", phone:"phone", loc:"loc", order:"sort"},
+  profiles: {name:"full_name", firstName:"first_name", lastName:"last_name", username:"username", role:"role", driverId:"driver_id"}
+};
+const NULLABLE = new Set(["customer_id","driver_id","delivered_at","failed_at","created_at","created_by","updated_at","updated_by","role"]);
+function toRow(col, obj){
+  const m = MAP[col], r = {};
+  for(const k in obj){ if(!(k in m)) continue; let v = obj[k]; const c = m[k]; if((v===""||v===undefined) && NULLABLE.has(c)) v = null; if(v===undefined) continue; r[c] = v; }
+  return r;
+}
+function fromRow(col, row){
+  const m = MAP[col], o = {};
+  for(const k in m){ const v = row[m[k]]; if(v!==null && v!==undefined) o[k] = v; }
+  return o;
+}
+const STORE = {orders:"orders", customers:"customers", drivers:"drivers", profiles:"users"};
+
+function handleErr(e){
+  console.error(e);
+  const msg = (e && (e.message||"")) || "";
+  if(e && (e.code==="42501" || /row-level security|permission/i.test(msg))) toast("Nemate dozvolu za ovu radnju.");
+  else if(e && e.code==="P0001") toast(msg);
+  else if(/JWT|session/i.test(msg)) toast("Sesija je istekla. Prijavite se ponovo.");
+  else toast("Čuvanje nije uspelo. Proverite internet vezu i pokušajte ponovo.");
+  throw e;
+}
+const apply = (col, id, obj) => { const st = STORE[col]; if(obj===null) delete S[st][id]; else S[st][id] = obj; render(); };
+const api = {
+  async put(col,id,data){
+    const st = STORE[col];
+    if(S[st][id]) return api.patch(col,id,data);
+    const { data:rows, error } = await sb.from(col).insert({id, ...toRow(col,data)}).select();
+    if(error) handleErr(error);
+    if(rows && rows[0]) apply(col, id, fromRow(col, rows[0]));
+  },
+  async patch(col,id,data){
+    const { data:rows, error } = await sb.from(col).update(toRow(col,data)).eq("id", id).select();
+    if(error) handleErr(error);
+    if(!rows || !rows.length) handleErr({code:"42501", message:"no rows"});
+    apply(col, id, fromRow(col, rows[0]));
+  },
+  async del(col,id){
+    const { error } = await sb.from(col).delete().eq("id", id);
+    if(error) handleErr(error);
+    apply(col, id, null);
+  },
+  async delMany(col, ids){
+    for(let i=0;i<ids.length;i+=200){
+      const part = ids.slice(i,i+200);
+      const { error } = await sb.from(col).delete().in("id", part);
+      if(error) handleErr(error);
+      part.forEach(id=>delete S[STORE[col]][id]);
+    }
+    render();
+  },
+  async insertMany(col, list){
+    for(let i=0;i<list.length;i+=200){
+      const part = list.slice(i,i+200).map(x=>({id:x.id, ...toRow(col,x.data)}));
+      const { data:rows, error } = await sb.from(col).insert(part).select();
+      if(error) handleErr(error);
+      (rows||[]).forEach(r=>{ S[STORE[col]][r.id] = fromRow(col,r); });
+    }
+    render();
+  }
+};
+async function fetchAll(col, build){
+  const out = {}; let from = 0;
+  for(;;){
+    let q = sb.from(col).select("*").range(from, from+999);
+    if(build) q = build(q);
+    const { data, error } = await q;
+    if(error) throw error;
+    data.forEach(r=>{ out[r.id] = fromRow(col, r); });
+    if(data.length < 1000) break;
+    from += 1000;
+  }
+  return out;
+}
+
+const drivers = (loc=S.loc) => Object.entries(S.drivers).map(([id,d])=>({id,...d})).filter(d=>d.loc===loc).sort((a,b)=>(a.order??99)-(b.order??99) || (a.name||"").localeCompare(b.name||"","sr"));
+const customers = () => Object.entries(S.customers).map(([id,c])=>({id,...c})).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sr"));
+const ordersOn = date => Object.entries(S.orders).map(([id,o])=>({id,...o})).filter(o=>o.date===date && o.loc===S.loc);
+const bySeq = (a,b) => (+a.round||0)-(+b.round||0) || (a.seq??999)-(b.seq??999) || (a.createdAt||"").localeCompare(b.createdAt||"");
+const urgFirst = (a,b) => (a.urgency==="urgent"?0:1)-(b.urgency==="urgent"?0:1) || (a.createdAt||"").localeCompare(b.createdAt||"");
+const canWrite = () => true;
+const D = () => canWrite() ? "" : "disabled";
+const isFin = o => o.status==="delivered" || o.status==="failed";
+const findCustByName = name => { const n = norm(name); if(!n) return null; return customers().find(c=>norm(c.name)===n) || null; };
+
+function render(){
+  $("#dPick").value = S.date;
+  const m = $("#main");
+  $("#userbox").hidden = !session;
+  const me = S.users[S.myId];
+  if(session) $("#uname").textContent = (me && (me.firstName || me.name)) || "";
+  const showNav = session && S.mode==="db";
+  $("#bar2").hidden = !showNav;
+  if(S.mode==="config"){ m.innerHTML = `<section class="auth"><h2>Aplikacija nije podešena</h2><p class="hint" style="margin:0">U fajlu index.html upišite SUPABASE_URL i SUPABASE_ANON_KEY svog Supabase projekta. Uputstvo je u README.md.</p></section>`; return; }
+  if(S.mode==="auth"){ m.innerHTML = authView(); return; }
+  if(S.mode==="loading" || !(S.loaded.orders && S.loaded.drivers && S.loaded.customers && S.loaded.users)){ m.innerHTML = `<div class="empty">Učitavanje podataka…</div>`; return; }
+  const ae = document.activeElement, keep = ae && ae.id==="custSearch" ? ae.selectionStart : null;
+  let h = "";
+  const views = P.views();
+  const md = P.myDriver();
+  if(md && S.drivers[md]){ S.loc = S.drivers[md].loc; S.me = md; }
+  if(!views.includes(S.view)) S.view = views[0];
+  document.querySelectorAll("#mainnav [data-role]").forEach(b=>{ b.hidden = !views.includes(b.dataset.role); if(b.dataset.role===S.view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  $("#mainnav").classList.toggle("open", S.navOpen);
+  $("#menuBtn").setAttribute("aria-expanded", String(S.navOpen));
+  $("#menuBtn").hidden = views.length<2; $("#mainnav").style.visibility = views.length<2 ? "hidden" : "";
+  $("#datebar").hidden = !["plan","drv","mgr"].includes(S.view);
+  if(S.viewAs) h += `<div class="banner">Pregled kao: <b>${esc(ROLES[S.viewAs])}</b>${S.viewAs==="vozac"&&S.drivers[S.viewAsDriver]?" · "+esc(S.drivers[S.viewAsDriver].name):""}. <button class="btn sm" data-act="viewas-off" style="margin-left:8px">Vrati na administratora</button></div>`;
+  if(!views.length){
+    m.innerHTML = h + `<section class="auth"><h2>Nalog nema ulogu</h2><p class="hint" style="margin:0">Administrator vam još nije dodelio ulogu. Javite mu se, pa se ponovo prijavite.</p></section>`;
+    return;
+  }
+  if(R()==="vozac" && !md){ m.innerHTML = h + `<div class="empty" style="max-width:560px">Vaš nalog još nije povezan sa vozačem. Javite se administratoru.</div>`; return; }
+  if(S.view==="plan") h += dispPlan();
+  else if(S.view==="cust") h += `<div class="ttl"><h2>Lista kupaca</h2></div>` + dispCustomers();
+  else if(S.view==="admin") h += adminPanel();
+  else if(S.view==="drv") h += viewDrv();
+  else h += viewMgr();
+  m.innerHTML = h;
+  if(S.view==="drv"){ const sel=$("#meSel"); if(sel) sel.value=S.me; }
+  if(keep!==null){ const s=$("#custSearch"); if(s){ s.focus(); s.setSelectionRange(keep,keep); } }
+  const ch = document.querySelector(".chips");
+  if(ch){ ch.scrollLeft = S.chipScroll||0; ch.addEventListener("scroll", ()=>{ S.chipScroll = ch.scrollLeft; chipFade(ch); }, {passive:true}); chipFade(ch); }
+}
+function chipFade(ch){ ch.classList.toggle("fade-l", ch.scrollLeft > 2); ch.classList.toggle("fade-r", ch.scrollLeft + ch.clientWidth < ch.scrollWidth - 2); }
+window.addEventListener("resize", ()=>{ const ch = document.querySelector(".chips"); if(ch) chipFade(ch); });
+const ICON = {
+  chev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`,
+  print: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 14h10v7H7z"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`,
+  one: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>`,
+  four: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>`
+};
+function roundSelect(act, id, cur, list, big){
+  return `<label class="rlab ${big?"big":""}"><span>Krug</span><select class="rsel" data-act="${act}" data-id="${esc(id)}" ${big?'id="drvRoundSel"':""}><option value="">Svi</option>${ROUNDS.filter(r=>r>0).map(r=>`<option value="${r}" ${String(r)===cur?"selected":""}>${r}</option>`).join("")}</select></label>`;
+}
+const rndLabel = r => r ? `Krug ${r}` : "Bez kruga";
+function locTitle(sub){
+  const locked = R()==="vozac";
+  return `<div class="ttl">
+    ${locked ? `<h2>${esc(LOCS[S.loc])}</h2>` : `<button class="locbtn" data-act="locmenu" aria-haspopup="menu" aria-expanded="${S.locMenu}">${ICON.chev}<h2>${esc(LOCS[S.loc])}</h2></button>`}
+    ${sub?`<span class="ttl-sub">${esc(sub)}</span>`:""}
+    ${S.locMenu && !locked ? `<div class="locmenu" role="menu">${Object.entries(LOCS).map(([k,l])=>`<button role="menuitemradio" aria-checked="${S.loc===k}" data-act="setloc" data-loc="${k}">${l}<span class="meta">${k}</span></button>`).join("")}</div>` : ""}
+  </div>`;
+}
+
+/* ----- dispatcher ----- */
+function dispPlan(){
+  const list = ordersOn(S.date), ds = drivers();
+  const tot = list.length, assigned = list.filter(o=>o.driverId && S.drivers[o.driverId]).length;
+  const urgent = list.filter(o=>o.urgency==="urgent").length;
+  const deliv = list.filter(o=>o.status==="delivered").length, failed = list.filter(o=>o.status==="failed").length;
+  let h = `<div class="row" style="flex-wrap:nowrap">${locTitle(fmtLong(S.date))}<span class="spacer"></span>
+    <button class="btn ibtn" data-act="print" aria-label="Štampa">${ICON.print}<span class="lbl">Štampa</span></button>${P.add()?`<button class="btn blue ibtn" data-act="new-order" aria-label="Dodaj na razvoz">${ICON.plus}<span class="lbl">Dodaj na razvoz</span></button>`:""}</div>
+  <div class="strip">
+    <div><span>Isporuke</span><b>${tot}</b></div>
+    <div><span>Raspoređeno</span><b>${assigned}<small class="meta" style="font-size:15px"> / ${tot}</small></b></div>
+    <div><span>Hitne isporuke</span><b style="color:${urgent?"var(--red)":"inherit"}">${urgent}</b></div>
+    <div><span>Isporučeno</span><b style="color:${deliv?"var(--green)":"inherit"}">${deliv}</b></div>
+    <div><span>Problemi</span><b style="color:${failed?"var(--red)":"inherit"}">${failed}</b></div>
+  </div>`;
+  const un = list.filter(o=>!o.driverId || !S.drivers[o.driverId] || S.drivers[o.driverId].loc!==S.loc).sort(urgFirst);
+  if(S.planFilter!=="all" && S.planFilter!=="un" && !ds.some(d=>d.id===S.planFilter)) S.planFilter = "all";
+  const chip = (k,l,n) => `<button data-act="pfilter" data-f="${esc(k)}" aria-pressed="${S.planFilter===k}">${esc(l)}<span>${n}</span></button>`;
+  h += `<div class="chipbar"><div class="chipwrap"><div class="chips" role="group" aria-label="Filter">${chip("all","Sve",tot)}${chip("un","Neraspoređeno",un.length)}${ds.map(d=>chip(d.id,d.name,list.filter(o=>o.driverId===d.id).length)).join("")}</div></div>
+    <div class="viewseg" role="group" aria-label="Prikaz kartica"><button data-act="cview" data-v="simple" aria-pressed="${S.cardView==="simple"}" title="Prosto" aria-label="Prosto">${ICON.one}</button><button data-act="cview" data-v="detail" aria-pressed="${S.cardView==="detail"}" title="Detaljno" aria-label="Detaljno">${ICON.four}</button></div></div><div class="board">`;
+  const showUn = S.planFilter==="all" || S.planFilter==="un";
+  if(showUn){
+  h += `<section class="col"><div class="col-h"><h3>Neraspoređeno</h3><span class="meta num">${un.length}</span></div>`;
+  h += un.length ? un.map(o=>orderCard(o,ds,null)).join("") : `<div class="empty">${tot?"Sve porudžbine su raspoređene.":"Nema porudžbina za ovaj dan."}</div>`;
+  h += `</section>`;
+  }
+  for(const d of ds.filter(d=>S.planFilter==="all" || S.planFilter===d.id)){
+    const all = list.filter(o=>o.driverId===d.id).sort(bySeq);
+    const cr = S.colRound[d.id] || "";
+    const mine = cr==="" ? all : all.filter(o=>String(+o.round||0)===cr);
+    h += `<section class="col"><div class="col-h"><h3>${esc(d.name)}</h3><span class="meta num">${mine.filter(isFin).length}/${mine.length}</span>${all.length?roundSelect("colround", d.id, cr, all):""}</div>`;
+    if(!mine.length) h += `<div class="empty">${all.length?"Nema stanica u ovom krugu.":"Nema stanica."}</div>`;
+    let lastR = null;
+    mine.forEach(o=>{
+      const r = +o.round||0, grp = all.filter(x=>(+x.round||0)===r);
+      if(r!==lastR){ h += `<div class="rnd">${rndLabel(r)}</div>`; lastR = r; }
+      h += orderCard(o,ds,all.indexOf(o)+1,grp[0].id===o.id,grp[grp.length-1].id===o.id);
+    });
+    h += `</section>`;
+  }
+  return h + `</div>`;
+}
+function orderCard(o,ds,n,first,last){
+  const simple = S.cardView==="simple" && !S.expanded.has(o.id);
+  if(simple) return `<article class="card simple ${o.urgency==="urgent"?"urgent":""} ${isFin(o)?"fin":""}" data-act="cexp" data-id="${esc(o.id)}" title="Prikaži detalje">
+    <div class="card-h">${n?`<span class="seq">${n}</span>`:""}<div class="card-t"><b>${esc(o.customer)}</b></div></div>
+    <div class="card-f">${typePill(o)}${urgPill(o.urgency)}${o.status!=="planned"?statusPill(o.status,o):""}</div>
+  </article>`;
+  const opts = `<option value="">— vozač —</option>`+ds.map(d=>`<option value="${esc(d.id)}" ${o.driverId===d.id?"selected":""}>${esc(d.name)}</option>`).join("");
+  const dName = S.drivers[o.driverId]?.name;
+  return `<article class="card ${o.urgency==="urgent"?"urgent":""} ${isFin(o)?"fin":""}">
+    <div class="card-h">${n?`<span class="seq">${n}</span>`:""}
+      <div class="card-t"><b>${esc(o.customer)}</b><div class="meta">${esc(o.address)}</div>${o.phone?`<div class="meta num">${esc(o.phone)}</div>`:""}</div>
+      ${P.editOrder(o)?`<button class="iconbtn" title="Izmeni" aria-label="Izmeni porudžbinu" data-act="edit-order" data-id="${esc(o.id)}">✎</button>`:""}
+    </div>
+    ${o.note?`<div style="font-size:13.5px;overflow-wrap:anywhere">${esc(o.note)}</div>`:""}
+    ${o.createdBy?`<div class="meta">Upisao: <b style="color:var(--fg);font-weight:600">${esc(who(o.createdBy)||"…")}</b>${o.createdAt?` · <span class="num">${esc(fmtDate((o.createdAt||"").slice(0,10)))} ${fmtTime(o.createdAt)}</span>`:""}</div>`:""}
+    <div class="card-f">${typePill(o)}${urgPill(o.urgency)}${o.orderNo?`<span class="nalog">Nalog ${esc(o.orderNo)}</span>`:""}${o.status!=="planned"?statusPill(o.status,o):""}
+      ${o.status==="delivered"&&o.deliveredAt?`<span class="meta num">${fmtTime(o.deliveredAt)}</span>`:""}
+      ${o.status==="failed"&&o.failReason?`<span class="meta" style="color:var(--red)">${esc(o.failReason)}</span>`:""}
+    </div>
+    ${P.assign() || S.cardView==="simple" ? `<div class="card-f">
+      ${P.assign() ? `<select aria-label="Dodeli vozaču" data-act="assign" data-id="${esc(o.id)}">${opts}</select>
+      <select class="sm" aria-label="Krug" data-act="round" data-id="${esc(o.id)}"><option value="0">Krug</option>${ROUNDS.filter(r=>r>0).map(r=>`<option value="${r}" ${(+o.round||0)===r?"selected":""}>${r}</option>`).join("")}</select>
+      ${n?`<span class="arrows"><button class="iconbtn" aria-label="Pomeri gore" data-act="up" data-id="${esc(o.id)}" ${first?"disabled":""}>↑</button><button class="iconbtn" aria-label="Pomeri dole" data-act="down" data-id="${esc(o.id)}" ${last?"disabled":""}>↓</button></span>`:""}`
+      : ""}
+      ${S.cardView==="simple"?`<button class="btn sm collapse" data-act="cexp" data-id="${esc(o.id)}" style="margin-left:auto">Skupi</button>`:""}
+    </div>` : ""}
+  </article>`;
+}
+function custFiltered(){
+  const all = customers(), q = norm(S.custQ), qd = S.custQ.replace(/\D/g,"");
+  return q ? all.filter(c=>norm(c.name).includes(q) || (c.addresses||[]).some(a=>norm(a).includes(q)) || (qd.length>=3 && (c.phones||[]).some(p=>p.replace(/\D/g,"").includes(qd)))) : all;
+}
+function dispCustomers(){
+  const all = customers(), list = custFiltered(), ed = S.custEdit;
+  for(const id of [...S.custSel]) if(!S.customers[id]) S.custSel.delete(id);
+  const shown = list.slice(0,300), nSel = S.custSel.size;
+  const allOn = shown.length>0 && shown.every(c=>S.custSel.has(c.id));
+  let h = `<div class="row"><input id="custSearch" class="search" type="search" placeholder="Pretraga kupaca, adresa, telefona" value="${esc(S.custQ)}" aria-label="Pretraga kupaca">
+      <span class="meta num">${all.length} kupaca</span><span class="spacer"></span>
+      ${ed ? `<button class="btn" data-act="cedit-off">Gotovo</button>`
+           : `${P.custAdmin()?`<button class="btn" data-act="cedit-on" ${D()} ${all.length?"":"disabled"}>Izmeni</button>`:""}${P.custAdd()?`<button class="btn" data-act="import">Uvoz iz Excel-a</button><button class="btn primary" data-act="add-cust">+ Dodaj kupca</button>`:""}`}</div>`;
+  if(ed) h += `<div class="selbar"><label class="ck"><input type="checkbox" data-act="csall" ${allOn?"checked":""} ${shown.length?"":"disabled"}><span>Označi sve${S.custQ?" (iz pretrage)":""}</span></label>
+      <span class="meta num">${nSel?`Označeno: ${nSel}`:"Ništa nije označeno"}</span><span class="spacer"></span>
+      <button class="btn badfill" data-act="cdel" ${nSel?"":"disabled"}>Izbriši${nSel?` (${nSel})`:""}</button></div>`;
+  h += `<div class="list">${shown.length ? shown.map(c=>`<div class="li ${ed&&S.custSel.has(c.id)?"sel":""}">
+      ${ed?`<input type="checkbox" class="ckbox" data-act="csel" data-id="${esc(c.id)}" aria-label="Označi ${esc(c.name)}" ${S.custSel.has(c.id)?"checked":""}>`:""}
+      <div class="grow"><b>${esc(c.name)}</b>
+      <div class="meta">${(c.addresses||[]).map(esc).join(" · ")||"Bez adrese"}</div>
+      ${(c.phones||[]).length?`<div class="meta num">${c.phones.map(esc).join(" · ")}</div>`:""}</div>
+      ${ed||!P.custAdmin()?"":`<button class="btn sm" data-act="edit-cust" data-id="${esc(c.id)}" ${D()}>Izmeni</button>`}</div>`).join("")
+      : `<div class="empty">${all.length?"Nema kupaca za ovu pretragu.":"Baza kupaca je prazna. Kupac se dodaje sam kada ga unesete u novu porudžbinu, a možete i da uvezete spisak iz Excel-a."}</div>`}
+    ${list.length>300?`<p class="hint">Prikazano prvih 300. Suzite pretragu.</p>`:""}</div>`;
+  return h;
+}
+async function deleteSelected(btn){
+  if(!armConfirm(btn, `Potvrdi brisanje (${S.custSel.size})`)) return;
+  const ids = [...S.custSel]; btn.disabled = true; let done = 0;
+  try{ await api.delMany("customers", ids); ids.forEach(id=>S.custSel.delete(id)); done = ids.length; toast(`Izbrisano kupaca: ${done}`); }
+  catch(e){}
+  if(!Object.keys(S.customers).length) S.custEdit = false;
+  render();
+}
+function adminPanel(){
+  const allD = Object.entries(S.drivers).map(([id,d])=>({id,...d}));
+  const rows = Object.entries(S.users).map(([id,u])=>({id,...u})).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sr"));
+  const canManage = S.role==="admin" && !S.viewAs;
+  const sel = "padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface)";
+  const drvOpts = cur => `<option value="">— izaberite —</option>${["BG","NS"].map(l=>`<optgroup label="${LOCS[l]}">${allD.filter(d=>d.loc===l).sort((a,b)=>(a.order??99)-(b.order??99)).map(d=>`<option value="${esc(d.id)}" ${cur===d.id?"selected":""}>${esc(d.name)}</option>`).join("")}</optgroup>`).join("")}`;
+  let h = `<div class="ttl"><h2>Admin panel</h2></div>
+  <div class="panel"><div class="row"><h2>Korisnici</h2><span class="meta num">${rows.length}</span><span class="spacer"></span>${canManage?`<button class="btn blue ibtn" data-act="add-user">${ICON.plus}<span class="lbl">Novi korisnik</span></button>`:""}</div>
+    <p class="hint" style="margin:0">Korisnike otvara samo administrator. Korisnik se prijavljuje korisničkim imenom i šifrom koje mu date.</p>
+    <div class="tbl-wrap"><table><thead><tr><th>Ime i prezime</th><th>Korisničko ime</th><th>Uloga</th><th>Vozač</th><th></th></tr></thead><tbody>
+    ${rows.length?rows.map(r=>`<tr><td><b>${esc(r.name||"—")}</b>${r.id===S.myId?` <span class="meta">(vi)</span>`:""}</td>
+      <td class="num">${esc(r.username||"—")}</td>
+      <td><select data-act="urole" data-id="${esc(r.id)}" ${canManage&&r.id!==S.myId?"":"disabled"} style="${sel}"><option value="">— bez uloge —</option>${Object.entries(ROLES).map(([k,l])=>`<option value="${k}" ${r.role===k?"selected":""}>${l}</option>`).join("")}</select></td>
+      <td>${r.role==="vozac"?`<select data-act="udrv" data-id="${esc(r.id)}" ${canManage?"":"disabled"} style="${sel}">${drvOpts(r.driverId)}</select>`:`<span class="meta">—</span>`}</td>
+      <td style="white-space:nowrap;text-align:right">${canManage?`<button class="btn sm" data-act="user-pass" data-id="${esc(r.id)}">Nova šifra</button> ${r.id!==S.myId?`<button class="btn sm bad" data-act="user-del" data-id="${esc(r.id)}">Izbriši</button>`:""}`:""}</td></tr>`).join("")
+      : `<tr><td colspan="5" class="meta">Nema korisnika.</td></tr>`}
+    </tbody></table></div></div>
+  <div class="grid2">${["BG","NS"].map(l=>{ const ds = allD.filter(d=>d.loc===l).sort((a,b)=>(a.order??99)-(b.order??99)||(a.name||"").localeCompare(b.name||"","sr"));
+    return `<section class="panel"><div class="row"><h2>Vozači · ${LOCS[l]}</h2><span class="spacer"></span>${canManage?`<button class="btn sm" data-act="add-driver" data-loc="${l}">+ Dodaj vozača</button>`:""}</div>
+      <div class="list">${ds.length?ds.map(d=>`<div class="li"><div class="grow"><b>${esc(d.name)}</b>${d.phone?`<div class="meta num">${esc(d.phone)}</div>`:""}</div>${canManage?`<button class="btn sm" data-act="edit-driver" data-id="${esc(d.id)}">Izmeni</button>`:""}</div>`).join(""):`<div class="empty">Nema vozača.</div>`}</div></section>`; }).join("")}</div>`;
+  if(S.role==="admin") h += `<div class="panel"><h2>Probaj prikaz po ulozi</h2><p class="hint" style="margin:0">Vidite aplikaciju onako kako je vidi izabrana uloga. Promena važi samo za vas i samo dok je stranica otvorena.</p>
+    <div class="row">${Object.entries(ROLES).filter(([k])=>k!=="admin").map(([k,l])=> k==="vozac"
+      ? `<select data-act="viewas-drv" style="padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface)"><option value="">Vozač…</option>${allD.map(d=>`<option value="${esc(d.id)}">${esc(d.name)} (${esc(d.loc)})</option>`).join("")}</select>`
+      : `<button class="btn" data-act="viewas" data-r="${k}">${l}</button>`).join("")}</div></div>`;
+  return h;
+}
+const USERNAME_RE = /^[a-z0-9._-]{3,30}$/;
+const toUsername = s => norm(s).replace(/\s+/g,".").replace(/[^a-z0-9._-]/g,"");
+function userForm(){
+  const allD = Object.entries(S.drivers).map(([id,d])=>({id,...d}));
+  openModal(`<h2>Novi korisnik</h2><form class="form" id="uf" novalidate autocomplete="off">
+    <div class="f h"><label for="u_first">Ime</label><input id="u_first"></div>
+    <div class="f h"><label for="u_last">Prezime</label><input id="u_last"></div>
+    <div class="f h"><label for="u_user">Korisničko ime</label><input id="u_user" autocapitalize="none" spellcheck="false" placeholder="npr. marko.petrovic"></div>
+    <div class="f h"><label for="u_pass">Šifra</label><input id="u_pass" type="text" autocomplete="new-password" placeholder="najmanje 6 znakova"></div>
+    <div class="f h"><label for="u_role">Uloga</label><select id="u_role">${Object.entries(ROLES).map(([k,l])=>`<option value="${k}" ${k==="komercijalista"?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="f h" id="u_drvWrap" hidden><label for="u_drv">Vozač</label><select id="u_drv"><option value="">— izaberite —</option>${allD.map(d=>`<option value="${esc(d.id)}">${esc(d.name)} (${esc(d.loc)})</option>`).join("")}</select></div>
+    <div class="f"><p class="hint" style="margin:0">Korisničko ime: mala slova, brojevi, tačka ili crtica (3–30 znakova). Zapišite šifru i prosledite je korisniku.</p></div>
+  </form><div class="row"><span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn blue" id="uSave">Otvori korisnika</button></div>`, root=>{
+    const first = root.querySelector("#u_first"), last = root.querySelector("#u_last"), user = root.querySelector("#u_user"), role = root.querySelector("#u_role");
+    let touched = false;
+    const suggest = () => { if(!touched) user.value = toUsername(first.value + (last.value?" "+last.value:"")); };
+    first.addEventListener("input", suggest); last.addEventListener("input", suggest);
+    user.addEventListener("input", ()=>{ touched = true; });
+    role.addEventListener("change", ()=>{ root.querySelector("#u_drvWrap").hidden = role.value!=="vozac"; });
+    root.querySelector("#uSave").addEventListener("click", async e=>{
+      const btn = e.currentTarget;
+      const f = first.value.trim(), l = last.value.trim(), u = user.value.trim().toLowerCase(), p = root.querySelector("#u_pass").value, r = role.value, d = root.querySelector("#u_drv").value;
+      if(!f || !l){ toast("Unesite ime i prezime."); return; }
+      if(!USERNAME_RE.test(u)){ toast("Korisničko ime: 3–30 znakova, mala slova, brojevi, tačka ili crtica."); return; }
+      if(p.length<6){ toast("Šifra mora imati najmanje 6 znakova."); return; }
+      if(r==="vozac" && !d){ toast("Izaberite vozača za ovaj nalog."); return; }
+      btn.disabled = true;
+      const { error } = await sb.rpc("admin_create_user", {p_first:f, p_last:l, p_username:u, p_password:p, p_role:r, p_driver:d||null});
+      btn.disabled = false;
+      if(error){ toast(error.message || "Korisnik nije otvoren."); return; }
+      try{ S.users = await fetchAll("profiles"); }catch(err){}
+      closeModal(); render(); toast(`Korisnik ${u} je otvoren`);
+    });
+    setTimeout(()=>first.focus(),30);
+  });
+}
+function passForm(id){
+  const u = S.users[id]||{};
+  openModal(`<h2>Nova šifra</h2><p class="hint" style="margin:0">${esc(u.name||"")} · ${esc(u.username||"")}</p><form class="form" novalidate><div class="f"><label for="np2">Nova šifra (najmanje 6 znakova)</label><input id="np2" type="text" autocomplete="new-password"></div></form>
+    <div class="row"><span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn blue" id="np2Save">Sačuvaj šifru</button></div>`, root=>{
+    root.querySelector("#np2Save").addEventListener("click", async()=>{
+      const pw = root.querySelector("#np2").value; if(pw.length<6){ toast("Šifra mora imati najmanje 6 znakova."); return; }
+      const { error } = await sb.rpc("admin_set_password", {p_user:id, p_password:pw});
+      if(error) toast(error.message||"Šifra nije promenjena."); else { closeModal(); toast("Šifra je promenjena."); }
+    });
+  });
+}
+async function deleteUser(btn, id){
+  if(!armConfirm(btn, "Potvrdi")) return;
+  const { error } = await sb.rpc("admin_delete_user", {p_user:id});
+  if(error){ toast(error.message||"Korisnik nije izbrisan."); return; }
+  delete S.users[id]; render(); toast("Korisnik je izbrisan.");
+}
+function authView(){
+  const boot = S.needsBootstrap;
+  return `<section class="auth">
+    <h2>${boot?"Prvo pokretanje":"Prijava"}</h2>
+    ${boot?`<p class="hint" style="margin:0">U aplikaciji još nema administratora. Otvorite svoj administratorski nalog.</p>`:""}
+    <form id="authForm" class="form" style="grid-template-columns:1fr" novalidate>
+      ${boot?`<div class="f"><label for="a_first">Ime</label><input id="a_first"></div><div class="f"><label for="a_last">Prezime</label><input id="a_last"></div>`:""}
+      <div class="f"><label for="a_user">Korisničko ime</label><input id="a_user" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="f"><label for="a_pass">Šifra</label><input id="a_pass" type="password" autocomplete="${boot?"new-password":"current-password"}"></div>
+      ${S.authMsg?`<div class="${S.authMsg.startsWith("!")?"err":"hint"}">${esc(S.authMsg.replace(/^!/,""))}</div>`:""}
+      <button class="btn blue" type="submit">${boot?"Otvori administratora":"Prijavi se"}</button>
+    </form>
+    ${boot?"":`<p class="hint" style="margin:0">Nalog vam otvara administrator. Ako ste zaboravili šifru, javite mu se.</p>`}
+  </section>`;
+}
+
+/* ----- driver ----- */
+function viewDrv(){
+  const ds = drivers();
+  const lockD = P.myDriver();
+  let h = locTitle(fmtLong(S.date));
+  h += lockD ? `<div class="drv-head"><div class="row"><b style="font-size:18px">${esc(S.drivers[lockD]?.name||"")}</b>__RSEL__</div>` : `<div class="drv-head"><div class="row"><label for="meSel" style="font-weight:600">Vozač</label>
+    <select id="meSel" data-act="me" style="padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);min-width:200px;max-width:100%"><option value="">Izaberite vozača…</option>${ds.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("")}</select>__RSEL__</div>`;
+  const d = S.me && S.drivers[S.me] && S.drivers[S.me].loc===S.loc ? {id:S.me,...S.drivers[S.me]} : null;
+  if(!d) return h.replace("__RSEL__","") + `<p class="hint" style="margin:0">Izaberite vozača da vidite turu za ${esc(fmtLong(S.date))}.</p></div>`;
+  const allMine = ordersOn(S.date).filter(o=>o.driverId===d.id).sort(bySeq);
+  const drc = S.drvRound;
+  const mine = drc==="" ? allMine : allMine.filter(o=>String(+o.round||0)===drc);
+  h = h.replace("__RSEL__", allMine.length ? `<span class="spacer"></span>`+roundSelect("drvround", "", drc, allMine, true) : "");
+  const done = mine.filter(o=>o.status==="delivered").length, fail = mine.filter(o=>o.status==="failed").length, n = mine.length;
+  const rl = routeLink(mine.filter(o=>!isFin(o)));
+  h += `<div class="row"><span><b style="font-size:26px" class="num">${done+fail}/${n}</b> <span class="meta">stanica završeno</span></span><span class="spacer"></span>${rl?`<a class="btn primary" href="${esc(rl)}" target="_blank" rel="noopener">Cela ruta u Google Maps ↗</a>`:""}</div>
+    <div class="prog" aria-hidden="true"><i style="width:${n?done/n*100:0}%;background:var(--green)"></i><i style="width:${n?fail/n*100:0}%;background:var(--red)"></i></div></div>`;
+  if(!n) return h + `<div class="empty" style="max-width:760px">${allMine.length?"Nema stanica u izabranom krugu.":"Nema stanica za "+esc(fmtLong(S.date))+"."}</div>`;
+  h += `<div class="stops">`;
+  let lastR = null; const act = P.drvAct();
+  if(!act) h += `<p class="hint" style="margin:0">Pregled rasporeda. Status isporuke menja vozač.</p>`;
+  mine.forEach((o,i)=>{
+    const fin = isFin(o), r = +o.round||0;
+    if(r!==lastR){ h += `<div class="rnd">${rndLabel(r)}</div>`; lastR = r; }
+    h += `<article class="stop ${o.urgency==="urgent"?"urgent":""} ${fin?"fin":""}">
+      <div class="card-h"><span class="seq">${allMine.indexOf(o)+1}</span><div class="card-t"><h3>${esc(o.customer)}</h3><div class="meta" style="font-size:15px">${esc(o.address)}</div></div><div class="card-f" style="justify-content:flex-end">${typePill(o)}${urgPill(o.urgency)}</div></div>
+      <dl class="kv">
+        ${o.orderNo?`<dt>Broj naloga</dt><dd class="num">${esc(o.orderNo)}</dd>`:""}
+        ${o.phone?`<dt>Telefon</dt><dd><span class="num" style="user-select:all">${esc(o.phone)}</span> <a class="btn sm" href="tel:${esc(o.phone.replace(/[^+\d]/g,""))}">Pozovi</a></dd>`:""}
+        ${o.note?`<dt>Napomena</dt><dd>${esc(o.note)}</dd>`:""}
+        ${o.createdBy?`<dt>Upisao</dt><dd>${esc(who(o.createdBy)||"…")}</dd>`:""}
+        <dt>Status</dt><dd>${statusPill(o.status,o)}</dd>
+        ${o.status==="delivered"?`<dt>${isPick(o)?"Preuzeto":"Isporučeno"}</dt><dd class="num">${esc(fmtDate(o.date))} u ${fmtTime(o.deliveredAt)}</dd>`:""}
+        ${o.status==="failed"?`<dt>Razlog</dt><dd style="color:var(--red)">${esc(o.failReason||"")}${o.failNote?" · "+esc(o.failNote):""}</dd>`:""}
+      </dl>
+      <div class="stop-actions">${fin
+        ? (act?`<button class="btn big" data-act="reopen" data-id="${esc(o.id)}">Vrati na otvoreno</button>`:"")
+        : `<a class="btn big" href="${esc(mapsTo(o.address))}" target="_blank" rel="noopener">Navigacija ↗</a>
+           ${act?`${o.status!=="en_route"?`<button class="btn big" data-act="start" data-id="${esc(o.id)}">Krećem</button>`:""}
+           <button class="btn big ok" data-act="deliver" data-id="${esc(o.id)}">${isPick(o)?"Preuzeto":"Isporučeno"}</button>
+           <button class="btn big bad" data-act="fail" data-id="${esc(o.id)}">Problem</button>`:""}`}
+      </div></article>`;
+  });
+  return h + `</div>`;
+}
+
+/* ----- manager ----- */
+function viewMgr(){
+  const end = S.date, start = addDays(end, -(S.period-1));
+  const all = Object.entries(S.orders).map(([id,o])=>({id,...o})).filter(o=>o.loc===S.loc && o.date>=start && o.date<=end);
+  const del = all.filter(o=>o.status==="delivered"), fail = all.filter(o=>o.status==="failed");
+  const closed = del.length+fail.length, rate = closed ? Math.round(del.length/closed*100) : null;
+  const urg = all.filter(o=>o.urgency==="urgent");
+  const per = drivers().map(d=>{ const m=all.filter(o=>o.driverId===d.id); const dd=m.filter(o=>o.status==="delivered").length; const ff=m.filter(o=>o.status==="failed").length; return {d, n:m.length, dd, ff, urg:m.filter(o=>o.urgency==="urgent").length, days:new Set(m.map(o=>o.date)).size, rate:(dd+ff)?Math.round(dd/(dd+ff)*100):null}; });
+  const periods = [[1,"Dan"],[7,"7 dana"],[30,"30 dana"]];
+  let h = `<div class="row">${locTitle("Analitika · "+(S.period===1?fmtLong(end):fmtLong(start)+" – "+fmtLong(end)))}<span class="spacer"></span>
+    <div class="tabs" role="tablist" style="border:0">${periods.map(([p,l])=>`<button role="tab" data-act="period" data-p="${p}" aria-selected="${S.period===p}">${l}</button>`).join("")}</div></div>
+  <div class="kpis">
+    <div class="kpi"><span>Isporuke</span><b>${all.length}</b><small>${closed} završeno</small></div>
+    <div class="kpi"><span>Uspešnost isporuke</span><b style="color:${rate===null?"inherit":"var(--green)"}">${rate===null?"—":rate+"%"}</b><small>${del.length} isporučeno</small></div>
+    <div class="kpi"><span>Neisporučeno</span><b style="color:${fail.length?"var(--red)":"inherit"}">${fail.length}</b><small>za ponovno planiranje</small></div>
+    <div class="kpi"><span>Hitne isporuke</span><b>${urg.length}</b><small>${all.length?Math.round(urg.length/all.length*100):0}% svih porudžbina</small></div>
+  </div>`;
+  if(S.period>1) h += `<section class="panel chart"><div class="row"><h2>Isporuke po danu</h2><span class="spacer"></span><div class="legend"><span><i style="background:var(--green)"></i>Isporučeno</span><span><i style="background:var(--red)"></i>Neisporučeno</span><span><i style="background:#BDBDBD"></i>Otvoreno</span></div></div>${chart(start,end,all)}</section>`;
+  h += `<div class="grid2"><section class="panel"><h2>Po vozaču</h2>${per.some(r=>r.n)?`<div class="tbl-wrap"><table><thead><tr><th>Vozač</th><th class="r">Dana</th><th class="r">Stanica</th><th class="r">Hitnih</th><th class="r">Isporuč.</th><th class="r">Problem</th><th class="r">Uspeh</th></tr></thead><tbody>${per.map(r=>`<tr><td>${esc(r.d.name)}</td><td class="r">${r.days}</td><td class="r">${r.n}</td><td class="r">${r.urg}</td><td class="r">${r.dd}</td><td class="r" style="${r.ff?"color:var(--red)":""}">${r.ff}</td><td class="r">${r.rate===null?"—":r.rate+"%"}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nema tura u ovom periodu.</div>`}</section>
+    <section class="panel"><h2>Neisporučene porudžbine</h2>${fail.length?`<div class="list">${fail.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).map(o=>`<div class="li"><div class="grow"><b>${esc(o.customer)}</b><div class="meta">${esc(fmtDate(o.date))} · ${esc(S.drivers[o.driverId]?.name||"—")}${o.orderNo?" · nalog "+esc(o.orderNo):""}</div></div><span class="meta" style="color:var(--red)">${esc(o.failReason||"")}</span><button class="btn sm" data-act="replan" data-id="${esc(o.id)}" ${dis(P.assign())}>Prebaci na sutra</button></div>`).join("")}</div>`:`<div class="empty">Nema neisporučenih porudžbina.</div>`}</section></div>`;
+  return h;
+}
+function chart(start,end,all){
+  const days=[]; for(let d=start; d<=end; d=addDays(d,1)) days.push(d);
+  const data = days.map(d=>{const m=all.filter(o=>o.date===d); return {d, ok:m.filter(o=>o.status==="delivered").length, bad:m.filter(o=>o.status==="failed").length, open:m.filter(o=>!isFin(o)).length};});
+  const max = Math.max(4, ...data.map(x=>x.ok+x.bad+x.open));
+  const step = max<=10?2:max<=25?5:10, top = Math.ceil(max/step)*step;
+  const W = 1000, H = 260, L = 32, B = 24, T = 8, iw = W-L-6, ih = H-B-T, bw = iw/days.length;
+  const y = v => T + ih - v/top*ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Broj isporuka po danu">`;
+  for(let v=0; v<=top; v+=step) s += `<line x1="${L}" x2="${W-6}" y1="${y(v)}" y2="${y(v)}" stroke="#D6D6D6" stroke-width="${v?0.7:1.2}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  const every = days.length>14 ? 5 : 1;
+  data.forEach((x,i)=>{
+    const bx = L + i*bw + bw*0.2, w = bw*0.6; let base = 0;
+    [["ok","#1B7F3B"],["bad","#C62828"],["open","#BDBDBD"]].forEach(([k,c])=>{ if(x[k]){ s += `<rect x="${bx}" y="${y(base+x[k])}" width="${w}" height="${y(base)-y(base+x[k])}" fill="${c}"><title>${fmtDate(x.d)}: ${x[k]}</title></rect>`; base+=x[k]; } });
+    if(i%every===0 || i===days.length-1){ const [,mm,dd]=x.d.split("-").map(Number); s += `<text x="${bx+w/2}" y="${H-6}" text-anchor="middle">${dd}.${mm}.</text>`; }
+  });
+  return s + `</svg>`;
+}
+
+/* ---------- modals ---------- */
+function openModal(html, mount){
+  const r = $("#modalRoot");
+  r.innerHTML = `<div class="overlay" data-close="1"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  r.querySelector(".overlay").addEventListener("mousedown", e=>{ if(e.target.dataset.close) closeModal(); });
+  r.querySelectorAll("[data-x]").forEach(b=>b.addEventListener("click", closeModal));
+  if(mount) mount(r.querySelector(".sheet"));
+}
+function closeModal(){ $("#modalRoot").innerHTML = ""; }
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !e.defaultPrevented) closeModal(); });
+const val = (root,id) => (root.querySelector("#"+id)?.value ?? "").trim();
+
+/* --- order form with customer base --- */
+function orderForm(id){
+  const o = id ? Object.assign({}, S.orders[id]) : {date:S.date, status:"planned", urgency:"normal"};
+  const st = { custId: o.customerId && S.customers[o.customerId] ? o.customerId : null, isNew:false };
+  if(!st.custId && o.customer){ const c = findCustByName(o.customer); if(c) st.custId = c.id; }
+  openModal(`<h2>${id?"Izmena razvoza":"Dodaj na razvoz"} <span class="loc-tag">${S.loc}</span></h2>
+   <form class="form" id="of" autocomplete="off" novalidate>
+    <div class="f"><span class="lbl">Vrsta</span><div class="seg2" role="radiogroup" aria-label="Vrsta">
+      <label class="deliv"><input type="radio" name="typ" value="delivery" ${!isPick(o)?"checked":""}>${ARROW_UP}<span>Isporuka robe</span></label>
+      <label class="pick"><input type="radio" name="typ" value="pickup" ${isPick(o)?"checked":""}>${ARROW_DOWN}<span>Preuzimanje robe</span></label></div></div>
+    <div class="f"><label for="o_cust">Kupac <span id="custNew" class="newtag" hidden>NOVI KUPAC</span></label>
+      <div class="combo"><input id="o_cust" role="combobox" aria-expanded="false" aria-controls="custList" aria-autocomplete="list" placeholder="Kucajte ime ili izaberite sa spiska" value="${esc(o.customer)}">
+      <ul id="custList" class="combo-list" role="listbox" hidden></ul></div></div>
+    <div class="f"><label for="o_addrSel">Adresa</label><select id="o_addrSel"></select>
+      <input id="o_addr" class="sub" placeholder="Ulica i broj, mesto" aria-label="Nova adresa" hidden></div>
+    <div class="f h"><label for="o_phoneSel">Kontakt telefon</label><select id="o_phoneSel"></select>
+      <input id="o_phone" class="sub" type="tel" placeholder="06x xxx xxxx" aria-label="Novi telefon" hidden></div>
+    <div class="f h"><label for="o_no">Broj naloga</label><input id="o_no" value="${esc(o.orderNo)}" placeholder="npr. 2026-0148"></div>
+    <div class="f h"><label for="o_date">Datum isporuke</label><input id="o_date" type="date" value="${esc(o.date)}"></div>
+    <div class="f"><span class="lbl">Hitnost isporuke</span><div class="urg" role="radiogroup" aria-label="Hitnost isporuke">
+      <label class="g"><input type="radio" name="urg" value="normal" ${o.urgency!=="urgent"?"checked":""}><span>1–2 dana</span></label>
+      <label class="r"><input type="radio" name="urg" value="urgent" ${o.urgency==="urgent"?"checked":""}><span>Hitno</span></label></div></div>
+    <div class="f"><label for="o_note">Napomena</label><textarea id="o_note" rows="2">${esc(o.note)}</textarea></div>
+   </form>
+   <div class="row">${id&&P.delOrder(o)?`<button class="btn bad" id="oDel">Izbriši</button>`:""}<span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn blue" id="oSave">${id?"Sačuvaj":"Dodaj na razvoz"}</button></div>`,
+  root=>{
+    const inp = root.querySelector("#o_cust"), ul = root.querySelector("#custList");
+    const aSel = root.querySelector("#o_addrSel"), aIn = root.querySelector("#o_addr");
+    const pSel = root.querySelector("#o_phoneSel"), pIn = root.querySelector("#o_phone");
+    let items = [], active = -1;
+
+    function fillSelect(sel, input, values, addLabel, current){
+      const vals = [...(values||[])];
+      if(current && !vals.includes(current)) vals.unshift(current);
+      sel.innerHTML = `<option value="__new">${addLabel}</option>` + vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+      sel.value = current ? current : (vals.length ? vals[0] : "__new");
+      input.hidden = sel.value!=="__new";
+      if(input.hidden) input.value = "";
+    }
+    function applyCustomer(){
+      const c = st.custId ? S.customers[st.custId] : null;
+      const same = id && st.custId && st.custId===o.customerId;
+      root.querySelector("#custNew").hidden = !st.isNew;
+      fillSelect(aSel, aIn, c?.addresses, "+ Dodaj adresu", same ? o.address : null);
+      fillSelect(pSel, pIn, c?.phones, "+ Dodaj telefon", same ? o.phone : null);
+    }
+    function renderList(){
+      const q = norm(inp.value);
+      let m = customers();
+      if(q) m = m.filter(c=>norm(c.name).includes(q));
+      m.sort((a,b)=>{ const as=norm(a.name).startsWith(q)?0:1, bs=norm(b.name).startsWith(q)?0:1; return as-bs || a.name.localeCompare(b.name,"sr"); });
+      m = m.slice(0,80);
+      const typed = inp.value.trim(), exact = findCustByName(typed);
+      items = [{add:true}].concat(m);
+      ul.innerHTML = items.map((it,i)=> it.add
+        ? `<li role="option" class="add" data-i="${i}" aria-selected="${i===active}">+ Dodaj kupca${typed&&!exact?` „${esc(typed)}“`:""}</li>`
+        : `<li role="option" data-i="${i}" aria-selected="${i===active}"><span>${esc(it.name)}</span><small>${esc((it.addresses||[])[0]||"")}</small></li>`).join("")
+        + (m.length||!q ? "" : `<li class="none">Nema kupca sa tim imenom u bazi</li>`);
+    }
+    const openL = () => { renderList(); ul.hidden=false; inp.setAttribute("aria-expanded","true"); };
+    const closeL = () => { ul.hidden=true; inp.setAttribute("aria-expanded","false"); active=-1; };
+    function pick(i){
+      const it = items[i]; if(!it) return;
+      if(it.add){
+        st.custId = null; st.isNew = true;
+        if(findCustByName(inp.value)) inp.value = "";
+        closeL(); applyCustomer();
+        if(!inp.value.trim()){ inp.placeholder = "Upišite naziv novog kupca"; inp.focus(); } else aIn.focus();
+      } else {
+        st.custId = it.id; st.isNew = false; inp.value = it.name; closeL(); applyCustomer();
+        root.querySelector("#o_no").focus();
+      }
+    }
+    inp.addEventListener("focus", openL);
+    inp.addEventListener("click", ()=>{ if(ul.hidden) openL(); });
+    inp.addEventListener("input", ()=>{
+      active = -1;
+      const c = st.custId ? S.customers[st.custId] : null;
+      if(c && norm(c.name)!==norm(inp.value)){ st.custId=null; st.isNew=false; applyCustomer(); }
+      openL();
+    });
+    inp.addEventListener("keydown", e=>{
+      const n = items.length;
+      if(e.key==="ArrowDown"){ e.preventDefault(); if(ul.hidden) openL(); active=(active+1)%n; renderList(); ul.querySelector(`[data-i="${active}"]`)?.scrollIntoView({block:"nearest"}); }
+      else if(e.key==="ArrowUp"){ e.preventDefault(); active=(active-1+n)%n; renderList(); ul.querySelector(`[data-i="${active}"]`)?.scrollIntoView({block:"nearest"}); }
+      else if(e.key==="Enter"){ e.preventDefault(); if(active>=0) pick(active); else { const c=findCustByName(inp.value); if(c){ items=[{add:true},c]; pick(1);} else if(inp.value.trim()){ items=[{add:true}]; pick(0);} } }
+      else if(e.key==="Escape" && !ul.hidden){ e.preventDefault(); closeL(); }
+    });
+    inp.addEventListener("blur", ()=>setTimeout(()=>{
+      if(document.activeElement===inp) return;
+      closeL();
+      const typed = inp.value.trim();
+      if(!st.custId && typed){ const c = findCustByName(typed); if(c){ st.custId=c.id; st.isNew=false; inp.value=c.name; applyCustomer(); } else if(!st.isNew){ st.isNew=true; applyCustomer(); } }
+    },150));
+    ul.addEventListener("mousedown", e=>{ e.preventDefault(); const li=e.target.closest("li[data-i]"); if(li) pick(+li.dataset.i); });
+    aSel.addEventListener("change", ()=>{ aIn.hidden = aSel.value!=="__new"; if(!aIn.hidden) aIn.focus(); });
+    pSel.addEventListener("change", ()=>{ pIn.hidden = pSel.value!=="__new"; if(!pIn.hidden) pIn.focus(); });
+    applyCustomer();
+
+    root.querySelector("#oSave").addEventListener("click", async()=>{
+      const name = inp.value.trim();
+      const address = aSel.value==="__new" ? aIn.value.trim() : aSel.value;
+      const phone = pSel.value==="__new" ? pIn.value.trim() : pSel.value;
+      if(!name){ toast("Unesite ili izaberite kupca."); inp.focus(); return; }
+      if(!address){ toast("Unesite adresu isporuke."); (aIn.hidden?aSel:aIn).focus(); return; }
+      const btn = root.querySelector("#oSave"); btn.disabled = true;
+      try{
+        let custId = st.custId || findCustByName(name)?.id || null, created = false;
+        if(!custId){
+          custId = uid(); created = true;
+          await api.put("customers", custId, {name, addresses:[address], phones: phone?[phone]:[], createdBy:S.myId});
+        } else {
+          const c = S.customers[custId] || {};
+          const addrs = [...(c.addresses||[])], phones = [...(c.phones||[])];
+          let ch = false;
+          if(address && !addrs.includes(address)){ addrs.push(address); ch = true; }
+          if(phone && !phones.includes(phone)){ phones.push(phone); ch = true; }
+          if(ch) await api.patch("customers", custId, {addresses:addrs, phones});
+        }
+        const driverId = o.driverId||"", date = val(root,"o_date")||S.date, now = new Date().toISOString();
+        const data = Object.assign({}, o, {
+          loc: o.loc || S.loc, customerId: custId, customer: name, address, phone,
+          orderNo: val(root,"o_no"), date, driverId, note: val(root,"o_note"),
+          urgency: root.querySelector('input[name="urg"]:checked')?.value || "normal",
+          type: root.querySelector('input[name="typ"]:checked')?.value || "delivery", round: +o.round||0, updatedAt: now
+        });
+        if(!id){ data.createdBy = S.myId; delete data.createdAt; } delete data.updatedAt; delete data.updatedBy;
+        if(P.assign() && (driverId !== (o.driverId||"") || date !== o.date || data.seq==null)) data.seq = nextSeq(date, driverId);
+        if(!id) data.status = "planned";
+        await api.put("orders", id||uid(), data);
+        closeModal(); toast(created ? "Dodato na razvoz. Kupac je upisan u bazu." : (id ? "Izmene sačuvane" : "Dodato na razvoz"));
+      }catch(e){ btn.disabled = false; }
+    });
+    const del = root.querySelector("#oDel");
+    if(del) del.addEventListener("click", async()=>{ if(!armConfirm(del)) return; try{ await api.del("orders",id); closeModal(); toast("Porudžbina obrisana"); }catch(e){} });
+    if(!id && window.matchMedia("(min-width:640px)").matches) setTimeout(()=>inp.focus(),30);
+  });
+}
+function nextSeq(date, driverId){ const m = ordersOn(date).filter(x=>(x.driverId||"")===(driverId||"")); return m.reduce((a,x)=>Math.max(a, x.seq||0), 0)+1; }
+
+/* --- customers --- */
+function custForm(id){
+  const c = id ? S.customers[id] : {};
+  openModal(`<h2>${id?"Izmena kupca":"Novi kupac"}</h2><form class="form" id="cf" novalidate>
+    <div class="f"><label for="c_name">Naziv kupca</label><input id="c_name" value="${esc(c.name)}"></div>
+    <div class="f"><label for="c_addr">Adrese</label><textarea id="c_addr" rows="3" placeholder="Jedna adresa po redu">${esc((c.addresses||[]).join("\n"))}</textarea></div>
+    <div class="f"><label for="c_ph">Telefoni</label><textarea id="c_ph" rows="2" placeholder="Jedan broj po redu">${esc((c.phones||[]).join("\n"))}</textarea></div>
+  </form><div class="row">${id?`<button class="btn bad" id="cDel">Izbriši</button>`:""}<span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn primary" id="cSave">Sačuvaj</button></div>`,
+  root=>{
+    const lines = t => [...new Set(t.split("\n").map(s=>s.trim()).filter(Boolean))];
+    root.querySelector("#cSave").addEventListener("click", async()=>{
+      const name = val(root,"c_name"); if(!name){ toast("Unesite naziv kupca."); return; }
+      const dup = findCustByName(name); if(dup && dup.id!==id){ toast("Kupac sa tim nazivom već postoji."); return; }
+      try{ await api.put("customers", id||uid(), Object.assign({}, c, {name, addresses:lines(root.querySelector("#c_addr").value), phones:lines(root.querySelector("#c_ph").value)})); closeModal(); toast("Kupac sačuvan"); }catch(e){}
+    });
+    const del = root.querySelector("#cDel");
+    if(del) del.addEventListener("click", async()=>{ if(!armConfirm(del)) return; try{ await api.del("customers", id); closeModal(); toast("Kupac obrisan. Postojeće porudžbine ostaju."); }catch(e){} });
+  });
+}
+function importForm(){
+  openModal(`<h2>Uvoz kupaca iz Excel-a</h2>
+    <p class="hint" style="margin:0">U Excel-u označite kolone <b>Naziv</b>, <b>Adresa</b> i <b>Telefon</b> (tim redom), kopirajte ih i nalepite ovde. Ako kupac već postoji, nova adresa ili telefon se dodaju uz postojeće.</p>
+    <div class="f"><label for="imp">Podaci</label><textarea id="imp" rows="9" style="font-size:13px" placeholder="Market Lipa&#9;Bulevar oslobođenja 45, Novi Sad&#9;021 451 220"></textarea></div>
+    <div id="impInfo" class="hint"></div>
+    <div class="row"><span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn primary" id="impGo" disabled>Uvezi</button></div>`,
+  root=>{
+    const ta = root.querySelector("#imp"), info = root.querySelector("#impInfo"), go = root.querySelector("#impGo");
+    let rows = [];
+    const parse = () => {
+      let raw = ta.value.split(/\r?\n/).map(l=>l.split(l.includes("\t")?"\t":";").map(s=>s.trim().replace(/^"|"$/g,""))).filter(r=>r[0]);
+      if(raw.length && /^(naziv|kupac|ime)$/i.test(raw[0][0])) raw.shift();
+      const map = {}; raw.forEach(r=>{ const k=norm(r[0]); (map[k] ||= {name:r[0],a:new Set(),p:new Set()}); if(r[1]) map[k].a.add(r[1]); if(r[2]) map[k].p.add(r[2]); });
+      rows = Object.values(map);
+      const nNew = rows.filter(r=>!findCustByName(r.name)).length;
+      info.textContent = rows.length ? `Prepoznato ${rows.length} kupaca: ${nNew} novih, ${rows.length-nNew} postojećih.` : "";
+      go.disabled = !rows.length;
+    };
+    ta.addEventListener("input", parse);
+    go.addEventListener("click", async()=>{
+      go.disabled = true; let done = 0; const fresh = [];
+      try{
+        for(const r of rows){
+          const ex = findCustByName(r.name);
+          if(ex){ const c=S.customers[ex.id]; const a=[...new Set([...(c.addresses||[]),...r.a])], p=[...new Set([...(c.phones||[]),...r.p])];
+            if(a.length!==(c.addresses||[]).length || p.length!==(c.phones||[]).length) await api.patch("customers", ex.id, {addresses:a, phones:p}); }
+          else fresh.push({id:uid(), data:{name:r.name, addresses:[...r.a], phones:[...r.p], createdBy:S.myId}});
+          done++;
+        }
+        go.textContent = `Uvoz… ${fresh.length} novih`;
+        await api.insertMany("customers", fresh);
+        closeModal(); toast(`Uvezeno ${done} kupaca`);
+      }catch(e){ go.disabled=false; go.textContent="Pokušaj ponovo"; }
+    });
+  });
+}
+
+/* --- drivers --- */
+function driverForm(id, loc){
+  const d = id ? S.drivers[id] : {loc:loc||S.loc};
+  openModal(`<h2>${id?"Izmena vozača":"Novi vozač"}</h2><form class="form" id="df" novalidate>
+    <div class="f"><label for="d_name">Ime</label><input id="d_name" value="${esc(d.name)}"></div>
+    <div class="f h"><label for="d_phone">Telefon</label><input id="d_phone" type="tel" value="${esc(d.phone)}"></div>
+    <div class="f h"><label for="d_loc">Lokacija</label><select id="d_loc"><option value="BG" ${d.loc==="BG"?"selected":""}>BG · Beograd</option><option value="NS" ${d.loc==="NS"?"selected":""}>NS · Novi Sad</option></select></div>
+  </form><div class="row">${id?`<button class="btn bad" id="dDel">Izbriši</button>`:""}<span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn primary" id="dSave">Sačuvaj</button></div>`,
+  root=>{
+    root.querySelector("#dSave").addEventListener("click", async()=>{
+      const name = val(root,"d_name"); if(!name){ toast("Unesite ime vozača."); return; }
+      try{ await api.put("drivers", id||uid(), Object.assign({}, d, {name, phone:val(root,"d_phone"), loc:val(root,"d_loc")})); closeModal(); toast("Vozač sačuvan"); }catch(e){}
+    });
+    const del = root.querySelector("#dDel");
+    if(del) del.addEventListener("click", async()=>{ if(!armConfirm(del)) return; try{ await api.del("drivers", id); closeModal(); toast("Vozač obrisan. Njegove porudžbine su neraspoređene."); }catch(e){} });
+  });
+}
+
+/* --- delivery confirmation --- */
+function deliverForm(id){
+  const o = S.orders[id];
+  openModal(`<div class="confirm"><h2>${isPick(o)?"Roba je preuzeta?":"Roba je isporučena?"}</h2><p class="hint" style="margin:0">${esc(o.customer)} · ${esc(o.address)}${o.orderNo?" · nalog "+esc(o.orderNo):""}</p>
+    <div class="row"><button class="btn big" data-x>Otkaži</button><button class="btn big ok" id="pSave">Potvrđujem</button></div></div>`,
+  root=>{
+    const btn = root.querySelector("#pSave");
+    btn.focus();
+    btn.addEventListener("click", async()=>{
+      btn.disabled = true;
+      try{ await api.patch("orders", id, {status:"delivered", deliveredAt:new Date().toISOString(), failReason:"", failNote:""}); closeModal(); toast(isPick(o)?"Preuzimanje potvrđeno":"Isporuka potvrđena"); }
+      catch(e){ btn.disabled = false; }
+    });
+  });
+}
+function failForm(id){
+  const o = S.orders[id];
+  const reasons = ["Kupac nije na adresi","Kupac odbio robu","Pogrešna adresa","Oštećena roba","Nedostaje roba u vozilu","Drugo"];
+  openModal(`<h2>Isporuka nije moguća</h2><p class="hint" style="margin:0">${esc(o.customer)} · ${esc(o.address)}</p>
+    <form class="form" id="ff"><div class="f"><label for="f_reason">Razlog</label><select id="f_reason">${reasons.map(r=>`<option>${r}</option>`).join("")}</select></div>
+    <div class="f"><label for="f_note">Napomena</label><textarea id="f_note" rows="2"></textarea></div></form>
+    <div class="row"><span class="spacer"></span><button class="btn" data-x>Otkaži</button><button class="btn badfill" id="fSave">Prijavi problem</button></div>`,
+  root=>{
+    root.querySelector("#fSave").addEventListener("click", async()=>{
+      try{ await api.patch("orders", id, {status:"failed", failReason:val(root,"f_reason"), failNote:val(root,"f_note"), failedAt:new Date().toISOString()}); closeModal(); toast("Problem prijavljen dispečeru"); }catch(e){}
+    });
+  });
+}
+
+/* ---------- print ---------- */
+function printRows(){
+  const ds = drivers(), list = ordersOn(S.date);
+  const dIdx = id => { const i = ds.findIndex(d=>d.id===id); return i<0 ? 999 : i; };
+  let rows = list;
+  if(S.planFilter==="un") rows = list.filter(o=>dIdx(o.driverId)===999);
+  else if(S.planFilter!=="all") rows = list.filter(o=>o.driverId===S.planFilter);
+  return rows.sort((a,b)=>dIdx(a.driverId)-dIdx(b.driverId) || bySeq(a,b)).map(o=>({
+    name:o.customer||"", addr:o.address||"", no:o.orderNo||"", type:TYPE[isPick(o)?"pickup":"delivery"], hot:o.urgency==="urgent",
+    driver:S.drivers[o.driverId]&&S.drivers[o.driverId].loc===S.loc ? S.drivers[o.driverId].name : "—", round:(+o.round||0) ? String(+o.round) : "—", note:o.note||"", by:who(o.createdBy)||""
+  }));
+}
+function printTitle(){
+  const f = S.planFilter==="all" ? "Svi vozači" : S.planFilter==="un" ? "Neraspoređeno" : (S.drivers[S.planFilter]?.name||"");
+  return `${LOCS[S.loc]} · ${fmtLong(S.date)}/${S.date.slice(0,4)} · ${f}`;
+}
+function printTable(rows){
+  return `<table class="ptbl"><thead><tr><th>Naziv kupca / Adresa</th><th>Broj naloga</th><th>Vrsta</th><th>Vozač</th><th>Krug</th><th>Napomena</th><th>Upisao</th></tr></thead><tbody>
+    ${rows.length ? rows.map(r=>`<tr><td><b>${esc(r.name)}</b><div class="a">${esc(r.addr)}</div></td><td class="num">${esc(r.no)}</td><td>${esc(r.type)}${r.hot?'<span class="hot">HITNO</span>':""}</td><td>${esc(r.driver)}</td><td class="num" style="text-align:center">${esc(r.round)}</td><td>${esc(r.note)}</td><td>${esc(r.by)}</td></tr>`).join("") : `<tr><td colspan="7" class="meta">Nema stavki za izabrani filter.</td></tr>`}
+    </tbody></table>`;
+}
+function printView(){
+  const rows = printRows(), title = printTitle();
+  openModal(`<div class="row"><h2>Štampa razvoza</h2><span class="meta">${esc(title)} · ${rows.length} stavki</span></div>
+    <div class="tbl-wrap">${printTable(rows)}</div>
+    <p class="hint" style="margin:0">${window.__NO_PRINT ? "Ovo je pregled za štampu. U ovoj probnoj verziji browser ne dozvoljava štampu; u pravoj verziji dugme „Štampaj” otvara prozor za štampu (A4, položeno)." : "Štampa se na A4, položeno, prema filteru izabranom u Planu razvoza. U prozoru za štampu možete izabrati i „Sačuvaj kao PDF”."}</p>
+    <div class="row"><span class="spacer"></span><button class="btn" data-x>Zatvori</button>${window.__NO_PRINT?"":`<button class="btn blue" id="prGo" ${rows.length?"":"disabled"}>Štampaj</button>`}</div>`,
+  root=>{
+    root.classList.add("wide");
+    root.querySelector("#prGo")?.addEventListener("click", ()=>{
+      const now = new Date();
+      $("#printArea").innerHTML = `<h1>Demark razvoz</h1><div class="psub">${esc(title)} · stavki: ${rows.length}</div>${printTable(rows)}<div class="pfoot">Štampano ${pad2(now.getDate())}.${pad2(now.getMonth()+1)}.${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}</div>`;
+      window.print();
+    });
+  });
+}
+
+/* ---------- actions ---------- */
+async function swap(id, dir){
+  const o = S.orders[id]; const list = ordersOn(o.date).filter(x=>x.driverId===o.driverId && (+x.round||0)===(+o.round||0)).sort(bySeq);
+  const i = list.findIndex(x=>x.id===id), j = i+dir; if(j<0||j>=list.length) return;
+  const seqs = list.map((x,k)=>k+1); [seqs[i],seqs[j]]=[seqs[j],seqs[i]];
+  try{ for(let k=0;k<list.length;k++){ if(list[k].seq!==seqs[k]) await api.patch("orders", list[k].id, {seq:seqs[k]}); } }catch(e){}
+}
+document.addEventListener("click", async e=>{
+  const b = e.target.closest("[data-act]"); if(!b || b.tagName==="SELECT" || b.tagName==="INPUT") return;
+  const a = b.dataset.act, id = b.dataset.id;
+  if(a==="locmenu"){ S.locMenu=!S.locMenu; render(); }
+  else if(a==="setloc"){ S.loc=b.dataset.loc; lsSet("loc",S.loc); S.locMenu=false; render(); }
+  else if(a==="cview"){ S.cardView=b.dataset.v; lsSet("cardview",S.cardView); S.expanded.clear(); render(); }
+  else if(a==="cexp"){ S.expanded.has(id) ? S.expanded.delete(id) : S.expanded.add(id); render(); }
+  else if(a==="add-user") userForm();
+  else if(a==="user-pass") passForm(id);
+  else if(a==="user-del") deleteUser(b, id);
+  else if(a==="cedit-on"){ S.custEdit=true; S.custSel.clear(); render(); }
+  else if(a==="cedit-off"){ S.custEdit=false; S.custSel.clear(); render(); }
+  else if(a==="cdel") deleteSelected(b);
+  else if(a==="viewas"){ S.viewAs=b.dataset.r; S.viewAsDriver=""; S.view=VIEWS[S.viewAs][0]; render(); window.scrollTo(0,0); }
+  else if(a==="viewas-off"){ S.viewAs=""; S.view="admin"; render(); }
+  else if(a==="amode"){ S.authMode=b.dataset.m; S.authMsg=""; render(); }
+  else if(a==="pfilter"){ S.planFilter=b.dataset.f; render(); }
+  else if(a==="period"){ S.period=+b.dataset.p; render(); }
+  else if(a==="new-order") orderForm(null);
+  else if(a==="print") printView();
+  else if(a==="edit-order") orderForm(id);
+  else if(a==="add-cust") custForm(null);
+  else if(a==="edit-cust") custForm(id);
+  else if(a==="import") importForm();
+  else if(a==="add-driver") driverForm(null, b.dataset.loc);
+  else if(a==="edit-driver") driverForm(id);
+  else if(a==="up") swap(id,-1);
+  else if(a==="down") swap(id,1);
+  else if(a==="deliver") deliverForm(id);
+  else if(a==="fail") failForm(id);
+  else if(a==="start"){ try{ await api.patch("orders",id,{status:"en_route"}); }catch(e){} }
+  else if(a==="reopen"){ try{ await api.patch("orders",id,{status:"planned",deliveredAt:"",failReason:"",failNote:""}); }catch(e){} }
+  else if(a==="replan"){ const o=S.orders[id]; const nd=addDays(o.date,1); try{ await api.patch("orders",id,{date:nd,status:"planned",failReason:"",failNote:"",seq:nextSeq(nd,o.driverId)}); toast("Prebačeno na "+fmtDate(nd)); }catch(e){} }
+});
+document.addEventListener("change", async e=>{
+  const t = e.target;
+  if(t.dataset.act==="viewas-drv" && t.value){ S.viewAs="vozac"; S.viewAsDriver=t.value; S.view="drv"; render(); window.scrollTo(0,0); }
+  if(t.dataset.act==="urole"){ const id=t.dataset.id; const data={role:t.value||""}; if(t.value!=="vozac") data.driverId="";
+    try{ await api.patch("profiles", id, data); toast("Uloga sačuvana"); }catch(err){ render(); } }
+  if(t.dataset.act==="udrv"){ const id=t.dataset.id; try{ await api.patch("profiles", id, {driverId:t.value}); toast("Vozač povezan"); }catch(err){ render(); } }
+  if(t.dataset.act==="round"){ const o=S.orders[t.dataset.id]; const r=+t.value; const m=ordersOn(o.date).filter(x=>x.driverId===o.driverId && (+x.round||0)===r); try{ await api.patch("orders", t.dataset.id, {round:r, seq:m.reduce((a,x)=>Math.max(a,x.seq||0),0)+1}); }catch(err){} }
+  if(t.dataset.act==="assign"){ const o=S.orders[t.dataset.id]; try{ await api.patch("orders", t.dataset.id, {driverId:t.value, seq:nextSeq(o.date,t.value)}); }catch(err){} }
+  if(t.dataset.act==="csel"){ t.checked ? S.custSel.add(t.dataset.id) : S.custSel.delete(t.dataset.id); render(); }
+  if(t.dataset.act==="csall"){ const ids = custFiltered().slice(0,300).map(c=>c.id); ids.forEach(id=> t.checked ? S.custSel.add(id) : S.custSel.delete(id)); render(); }
+  if(t.dataset.act==="colround"){ S.colRound[t.dataset.id]=t.value; render(); }
+  if(t.dataset.act==="drvround"){ S.drvRound=t.value; lsSet("drvround",t.value); render(); }
+  if(t.dataset.act==="me"){ S.me=t.value; lsSet("me",t.value); render(); }
+});
+document.addEventListener("input", e=>{ if(e.target.id==="custSearch"){ S.custQ=e.target.value; render(); } });
+document.querySelectorAll("#mainnav [data-role]").forEach(b=>b.addEventListener("click",()=>{ S.view=b.dataset.role; lsSet("view",S.view); S.navOpen=false; S.locMenu=false; render(); window.scrollTo(0,0); }));
+$("#menuBtn").addEventListener("click", ()=>{ S.navOpen=!S.navOpen; render(); });
+document.addEventListener("click", e=>{
+  if(S.locMenu && !e.target.closest(".ttl")){ S.locMenu=false; render(); }
+  if(S.navOpen && !e.target.closest("#mainnav") && !e.target.closest("#menuBtn")){ S.navOpen=false; render(); }
+});
+$("#dPick").addEventListener("change", e=>{ if(e.target.value){ S.date=e.target.value; render(); } });
+$("#dPrev").addEventListener("click", ()=>{ S.date=addDays(S.date,-1); render(); });
+$("#dNext").addEventListener("click", ()=>{ S.date=addDays(S.date,1); render(); });
+
+
+/* ---------- drag board with mouse ---------- */
+let drag = null, dragMoved = false;
+document.addEventListener("pointerdown", e=>{
+  if(e.pointerType!=="mouse" || e.button!==0) return;
+  const board = e.target.closest(".board, .strip, .chips"); if(!board) return;
+  if(e.target.closest(board.classList.contains("chips") ? "select,input,textarea,a,label" : "select,input,textarea,button,a,label")) return;
+  if(board.scrollWidth <= board.clientWidth) return;
+  drag = {board, x:e.clientX, left:board.scrollLeft}; dragMoved = false;
+});
+document.addEventListener("pointermove", e=>{
+  if(!drag) return;
+  const dx = e.clientX - drag.x;
+  if(!dragMoved && Math.abs(dx) < 5) return;
+  if(!dragMoved){ dragMoved = true; drag.board.classList.add("dragging"); }
+  drag.board.scrollLeft = drag.left - dx; e.preventDefault();
+});
+const endDrag = () => { if(drag){ drag.board.classList.remove("dragging"); drag = null; } };
+document.addEventListener("pointerup", endDrag); document.addEventListener("pointercancel", endDrag);
+document.addEventListener("click", e=>{ if(dragMoved){ e.stopPropagation(); e.preventDefault(); dragMoved = false; } }, true);
+
+/* ---------- auth ---------- */
+document.addEventListener("submit", async e=>{
+  if(e.target.id!=="authForm") return;
+  e.preventDefault();
+  const u = ($("#a_user")?.value || "").trim(), pass = $("#a_pass")?.value || "";
+  const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+  try{
+    if(S.needsBootstrap){
+      const f = $("#a_first").value.trim(), l = $("#a_last").value.trim(), un = u.toLowerCase();
+      if(!f || !l || !USERNAME_RE.test(un) || pass.length<6){ S.authMsg = "!Unesite ime, prezime, korisničko ime (mala slova, brojevi, tačka) i šifru od najmanje 6 znakova."; render(); return; }
+      const { error } = await sb.rpc("bootstrap_admin", {p_first:f, p_last:l, p_username:un, p_password:pass});
+      if(error) throw error;
+      S.needsBootstrap = false;
+      await login(un, pass);
+    } else {
+      if(!u || !pass){ S.authMsg = "!Unesite korisničko ime i šifru."; render(); return; }
+      await login(u, pass);
+    }
+  }catch(err){
+    const m = err.message||"";
+    S.authMsg = "!" + (/Invalid login|not_found/i.test(m) ? "Pogrešno korisničko ime ili šifra." : m || "Prijava nije uspela.");
+    render();
+  }finally{ if(btn.isConnected) btn.disabled = false; }
+});
+async function login(u, pass){
+  let email = u;
+  if(!u.includes("@")){
+    const { data, error } = await sb.rpc("login_email", {p_username:u.toLowerCase()});
+    if(error) throw error;
+    if(!data) throw {message:"not_found"};
+    email = data;
+  }
+  const { error } = await sb.auth.signInWithPassword({ email, password:pass });
+  if(error) throw error;
+  S.authMsg = "";
+}
+$("#logout").addEventListener("click", async ()=>{ await sb.auth.signOut(); });
+
+let channel = null;
+async function loadAll(){
+  S.loaded = {orders:false,drivers:false,customers:false,users:false};
+  S.mode = "loading"; render();
+  try{
+    const [users, drv] = await Promise.all([fetchAll("profiles"), fetchAll("drivers")]);
+    S.users = users; S.drivers = drv; S.loaded.users = S.loaded.drivers = true;
+    S.role = S.users[S.myId]?.role || null;
+    if(S.role && S.role!=="vozac"){ S.customers = await fetchAll("customers"); }
+    S.loaded.customers = true;
+    if(S.role){ S.orders = await fetchAll("orders", q=>q.gte("date", addDays(today(), -120))); }
+    S.loaded.orders = true;
+  }catch(err){ console.error(err); toast("Podaci nisu učitani. Osvežite stranicu."); }
+  S.mode = "db"; render();
+  if(channel) sb.removeChannel(channel);
+  channel = sb.channel("razvoz");
+  ["orders","customers","drivers","profiles"].forEach(col=>{
+    channel.on("postgres_changes", {event:"*", schema:"public", table:col}, p=>{
+      const st = STORE[col];
+      if(p.eventType==="DELETE"){ delete S[st][p.old.id]; }
+      else { S[st][p.new.id] = fromRow(col, p.new); }
+      if(col==="profiles" && (p.new?.id===S.myId)){ const before = S.role; S.role = S.users[S.myId]?.role || null; if(before!==S.role){ loadAll(); return; } }
+      render();
+    });
+  });
+  channel.subscribe();
+}
+async function onSession(sess){
+  const prev = session?.user?.id;
+  session = sess;
+  if(!session){ try{ const r = await sb.rpc("needs_bootstrap"); S.needsBootstrap = r.data===true; }catch(e){ S.needsBootstrap = false; } S.myId = null; S.role = null; S.mode = "auth"; S.orders = {}; S.customers = {}; S.users = {}; if(channel){ sb.removeChannel(channel); channel = null; } render(); return; }
+  S.myId = session.user.id;
+  if(prev !== S.myId) await loadAll();
+}
+
+/* ---------- boot ---------- */
+(async()=>{
+  if(!window.supabase || SUPABASE_URL.includes("VAS-PROJEKAT") || SUPABASE_ANON_KEY.includes("VAS-ANON")){ S.mode = "config"; render(); return; }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.onAuthStateChange((event, sess)=>{
+    if(event==="SIGNED_IN" || event==="SIGNED_OUT" || event==="INITIAL_SESSION") setTimeout(()=>onSession(sess),0);
+  });
+})();
+function newPasswordForm(){
+  openModal(`<h2>Nova lozinka</h2><form class="form" id="npf" novalidate><div class="f"><label for="np">Nova lozinka (najmanje 8 znakova)</label><input id="np" type="password" autocomplete="new-password"></div></form>
+    <div class="row"><span class="spacer"></span><button class="btn blue" id="npSave">Sačuvaj lozinku</button></div>`, root=>{
+    root.querySelector("#npSave").addEventListener("click", async()=>{
+      const pw = root.querySelector("#np").value; if(pw.length<8){ toast("Lozinka mora imati najmanje 8 znakova."); return; }
+      const { error } = await sb.auth.updateUser({ password: pw });
+      if(error) toast("Lozinka nije promenjena: "+error.message); else { closeModal(); toast("Lozinka je promenjena."); }
+    });
+  });
+}
+})();
+</script>
+
+</body>
+</html>
